@@ -15,8 +15,8 @@ def findwordform(inputform, datafile):
 		return etree.tostring(member).strip() # This works for output of the chunk of xml
 
 def converttodevanagari(attributeslist):
-	gerardwords = ['nom', 'acc', 'ins', 'dat', 'abl', 'gen', 'loc', 'voc', 'mas', 'fem', 'neu', 'dei', 'sg', 'du', 'pl', 'fst', 'snd', 'trd', 'iic', 'iiv', 'iip', 'avyaya',]
-	devawords =   [u'प्रथमा', u'द्वितीया', u'तृतीया', u'चतुर्थी', u'पञ्चमी', u'षष्ठी', u'सप्तमी', u'संबोधन', u'पुंल्लिङ्ग', u'स्त्रीलिङ्ग', u'नपुंसकलिङ्ग', u'सङ्ख्या', u'एकवचन', u'द्विवचन', u'बहुवचन', u'प्रथमपुरुष', u'मध्यमपुरुष', u'उत्तमपुरुष', u'समासपूर्वपद', u'सहायकधातुपूर्व', u'कृदन्तपूर्वपद', u'अव्यय']
+	gerardwords = ['nom', 'acc', 'ins', 'dat', 'abl', 'gen', 'loc', 'voc', 'mas', 'fem', 'neu', 'dei', 'sg', 'du', 'pl', 'fst', 'snd', 'trd', 'iic', 'iiv', 'iip', 'avyaya', 'na']
+	devawords =   [u'प्रथमा', u'द्वितीया', u'तृतीया', u'चतुर्थी', u'पञ्चमी', u'षष्ठी', u'सप्तमी', u'संबोधन', u'पुंल्लिङ्ग', u'स्त्रीलिङ्ग', u'नपुंसकलिङ्ग', u'सङ्ख्या', u'एकवचन', u'द्विवचन', u'बहुवचन', u'प्रथमपुरुष', u'मध्यमपुरुष', u'उत्तमपुरुष', u'समासपूर्वपद', u'सहायकधातुपूर्व', u'कृदन्तपूर्वपद', u'अव्यय', u'']
 	outputlist = []
 	for member in attributeslist:
 		alist = []
@@ -25,7 +25,7 @@ def converttodevanagari(attributeslist):
 		outputlist.append(alist)
 	return outputlist
 
-def iter(wordxml):
+def iter(wordxml, strength="Full"):
 	wordxml = unicode(wordxml)
 	tree = StringIO(wordxml)
 	context = etree.parse(tree)
@@ -33,8 +33,10 @@ def iter(wordxml):
 	children = root.getchildren()[:-1] # attributes
 	basedata = root.getchildren()[-1] # s stem
 	basewordslp = basedata.get('stem').strip()
-	#baseword = transcoder.transcoder_processString(basewordslp,'slp1','deva')
-	baseword = basewordslp
+	if strength == "deva":
+		baseword = transcoder.transcoder_processString(basewordslp,'slp1','deva')
+	else:
+		baseword = basewordslp
 	attributes = []
 	for child in children:
 		taglist = child.xpath('.//*')
@@ -53,22 +55,25 @@ def iter(wordxml):
 			output.append('injunctivegana')
 			output.append(injgana)
 		attributes.append(output)
-	#outputlist = converttodevanagari(attributes)
-	outputlist = attributes # testing for verbs.
+	if (strength == "deva"):
+		outputlist = converttodevanagari(attributes)
+	else:
+		outputlist = attributes
 	wordwithtags = []
 	for member in outputlist:
 		wordwithtags.append(baseword + "-" + "-".join(member) )
 	return "|".join(wordwithtags)
 			
-def iteroverfiles(word):
+def analyser(word, strength="deva"):
 	filelist = ['SL_nouns.xml', 'SL_roots.xml','SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml', ]
 	outputlist = []
 	for file in filelist:
 		if findwordform(word, file) is not None:
-			outputlist.append(iter(findwordform(word, file)))
+			outputlist.append(iter(findwordform(word, file), strength))
 	return "|".join(outputlist)
 
-#print iteroverfiles("kAryate")
+print analyser("DavalAt")
+
 def findrootword(checkedrootword):
 	listing = []
 	filelist = ['SL_nouns.xml', 'SL_roots.xml','SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml', ]
@@ -89,7 +94,8 @@ def findrootword(checkedrootword):
 					listing.append(output)
 	return listing
 
-def constructor(analysedword):
+def generator(analysedword, translit="slp1"):
+	analysedword = unicode(analysedword)
 	data = re.split('|',analysedword)
 	for datum in data:
 		separate = re.split('-', datum)
@@ -104,9 +110,12 @@ def constructor(analysedword):
 		for rootdatum in datahavingroot:
 			if set(taglist) < set(rootdatum):
 				outlist.append(rootdatum[-1])
-		return "|".join(outlist)
+		if translit == "deva":
+			return transcoder.transcoder_processString("|".join(outlist),'slp1','deva')
+		else:
+			return "|".join(outlist)
 
-print constructor(u'kf#1-v-cj-ca-sys-pas-md-pr-np-sg-trd')
+print generator('Davala-sg-mas-abl', 'deva')
 
 def connripa():
 	f = open("nripadata1.csv", "r")
