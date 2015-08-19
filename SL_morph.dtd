@@ -1,0 +1,146 @@
+<!-- DTD for Sanskrit morphology              Author Gerard.Huet@inria.fr -->
+<!-- Free format for XML linguistic data interchange, no copyright        -->
+
+<!-- Version history   
+     Version 0.1 Date: Aug 15 2003 
+     Version 1.1 Date: Dec 05 2005
+     Version 1.2 Date: Aug 21 2006 
+     Version 1.3 Date: Feb 19 2008 
+     Version 1.4 Date: Jul 23 2008 - indeclinable forms more informative
+     Version 1.5 Date: Aug 16 2008 - conditional added
+     Version 1.6 Date: Dec 26 2008 - injunctive added
+     Version 1.7 Date: Fev 26 2009 - benedictive added
+     Version 2.1 Date: Dec 16 2010 - ga.na added, parameterized for SL 
+     Version 2.2 Date: Dec 18 2010 - validated data in SL transliteration
+     Version 2.3 Date: Dec 20 2010 - renamed SL_skt_morph.dtd
+     Version 2.4 Date: Jun 05 2012 - added tag avya for avyayiibhaava ifc
+     Version 2.5 Date: Nov 05 2012 - perif future has voice, gana optional attr
+     Version 3.1 Date: Nov 22 2013 - proper kridanta structure for participles
+     Version 3.2 Date: Dec 23 2014 - fix gn attribute of prs consistent with DTD
+     Version 3.3 Date: Jun 08 2015 - tasil indeclinable taddhitas added
+-->
+
+<!-- Transliteration of forms according to Sanskrit Library scheme SL1:
+a A i I u U f F x e E o O M ~ H
+k K g G N c C j J Y w W q Q R t T d D n p P b B m y r l v S z s h
+The generating stem is a form optionally suffixed by a homonymy index #n,
+it indexes an entry in the Sanskrit Heritage dictionary.
+-->
+
+<!ELEMENT forms (f | pv)*> <!-- list of all inflected forms -->
+
+<!ELEMENT f ((iic | iiv | uf | na | v | pa | ab | iip | vu | avya)*,s)> <!-- inflected form entry -->
+<!ATTLIST f form CDATA #REQUIRED>
+
+<!ELEMENT s EMPTY>  <!-- lexicon stem or root generating the form -->
+<!ATTLIST s stem CDATA #REQUIRED>
+
+<!ELEMENT pv EMPTY> <!-- preverb sequence -->
+<!ATTLIST pv form CDATA #REQUIRED>
+
+<!-- gender -->
+<!ELEMENT mas EMPTY> <!-- masculine -->
+<!ELEMENT neu EMPTY> <!-- neuter -->
+<!ELEMENT fem EMPTY> <!-- feminine -->
+<!ELEMENT dei EMPTY> <!-- deictic or numeral -->
+
+<!-- number -->
+<!ELEMENT sg EMPTY> <!-- singular -->
+<!ELEMENT du EMPTY> <!-- dual -->
+<!ELEMENT pl EMPTY> <!-- plural -->
+
+<!-- person -->
+<!ELEMENT fst EMPTY> <!-- 1 -->
+<!ELEMENT snd EMPTY> <!-- 2 -->
+<!ELEMENT trd EMPTY> <!-- 3 -->
+
+<!-- case -->
+<!ELEMENT nom EMPTY>
+<!ELEMENT voc EMPTY>
+<!ELEMENT acc EMPTY>
+<!ELEMENT ins EMPTY>
+<!ELEMENT dat EMPTY>
+<!ELEMENT abl EMPTY>
+<!ELEMENT gen EMPTY>
+<!ELEMENT loc EMPTY>
+
+<!ELEMENT iic EMPTY> <!-- beginning of compound -->
+<!ELEMENT iiv EMPTY> <!-- before auxiliary verb -->
+<!ELEMENT iip (cj,no)>  <!-- beginning of compound from participle -->
+<!ELEMENT uf (ind | interj | parti | prep | conj | tasil)>   <!-- indeclinable form -->
+<!ELEMENT ind EMPTY> <!-- indeclinable - adverb -->
+<!ELEMENT avya EMPTY> <!-- right component of avyayiibhaava -->
+<!ELEMENT interj EMPTY> <!-- indeclinable - interjection -->
+<!ELEMENT parti EMPTY> <!-- indeclinable - particle -->
+<!ELEMENT prep EMPTY> <!-- indeclinable - preposition -->
+<!ELEMENT conj EMPTY> <!-- indeclinable - conjunction -->
+<!ELEMENT tasil EMPTY> <!-- indeclinable - adverbs of manner in -tas -->
+<!ELEMENT pa (na,kr)> <!-- participial forms have nominal declension parameters and kridanta generator -->
+<!ELEMENT kr (vb)>     <!-- kridanta generator has verbal structure -->
+<!ELEMENT ab (cj)>     <!-- abs in tvaa with conjugation -->
+<!ELEMENT vb (cj,no)>   <!-- verbal has conjugation and nominal -->
+<!ELEMENT vu (cj,iv)>   <!-- indeclinable verbal form -->
+<!ELEMENT na ((nom | voc | acc | ins | dat | abl | gen | loc), 
+              (sg | du | pl), 
+              (mas | neu | fem | dei))> <!-- noun/adjective with case, number, gender -->
+<!ELEMENT np ((sg | du | pl),   
+              (fst | snd | trd))>  <!-- number, person -->
+
+<!ELEMENT v (cj,sys,np)>  <!-- finite root form has conjugation, system, number and person -->
+
+<!ELEMENT cj (prim | ca | int | des)> <!-- conjugation primary or secondary -->
+<!ELEMENT prim EMPTY> <!-- primary -->
+<!ELEMENT ca EMPTY>   <!-- causative -->
+<!ELEMENT int EMPTY>  <!-- intensive -->
+<!ELEMENT des EMPTY>  <!-- desiderative -->
+
+<!ELEMENT sys (prs | pas | tp | pef)> <!-- system is present system, passive system, tense paradigm or periphratic perfect -->
+
+<!ELEMENT prs (md, (para | atma))> <!-- mode and pade -->
+<!ATTLIST prs gn CDATA #IMPLIED> <!-- present system has opt gana attribute -->
+
+<!ELEMENT gn (#PCDATA)> <!-- gana is integer between 1 and 11 (denominatives) -->
+
+<!ELEMENT md (pr | ip | op | im)> <!-- mode is present, imperative, optative or imperfect -->
+<!ELEMENT pr EMPTY> <!-- present -->
+<!ELEMENT ip EMPTY> <!-- imperative -->
+<!ELEMENT op EMPTY> <!-- optative -->
+<!ELEMENT im EMPTY> <!-- imperfect -->
+
+<!ELEMENT para EMPTY> <!-- parasmaipade -->
+<!ELEMENT atma EMPTY> <!-- atmanepade -->
+<!ELEMENT pass EMPTY> <!-- passive voice -->
+
+<!ELEMENT pas (md)> <!-- passive system has mode-->
+
+<!ELEMENT tp ((fut | prf | aor | inj | cnd | ben),(para | atma | pass))> <!-- tense paradigm has tense and voice -->
+
+<!ELEMENT fut EMPTY> <!-- future -->
+<!ELEMENT prf EMPTY> <!-- perfect -->
+<!ELEMENT aor (#PCDATA)> <!-- aorist has kind, integer between 1 and 7-->
+<!ELEMENT inj (#PCDATA)> <!-- injunctive (aorist without augment) had kind -->
+<!ELEMENT cnd EMPTY> <!-- conditional -->
+<!ELEMENT ben EMPTY> <!-- benedictive -->
+
+<!ELEMENT pef (para | atma)> <!-- perif future -->
+<!ELEMENT no (ppp | ppa | ppr | pprp | ppft | pfut | pfutp)> <!-- nominal form is one among kridanta formation schemes -->
+<!ELEMENT ppp EMPTY> <!-- passive past participle -->
+<!ELEMENT ppa EMPTY> <!-- active past participle -->
+<!ELEMENT ppr (para | atma)>  <!-- present participle has pade  -->
+<!ATTLIST ppr gn CDATA #IMPLIED> <!-- present system has opt gana attribute -->
+<!ELEMENT pprp EMPTY>     <!-- passive present participle -->
+<!ELEMENT ppft (para | atma)> <!-- perfect participle has pade -->
+<!ELEMENT pfut (para | atma)> <!-- future participle has pade -->
+<!ELEMENT pfutp (gya | iya | tav)>    <!-- passive future participle has geruntive formation scheme -->
+
+<!ELEMENT gya EMPTY> <!-- gerundive in ya -->
+<!ELEMENT iya EMPTY> <!-- gerundive in Iya -->
+<!ELEMENT tav EMPTY> <!-- gerundive in tavya -->
+
+<!ELEMENT iv (inf | abs | per)> <!-- invariable verbal form -->
+<!ELEMENT inf EMPTY> <!-- infinitive -->
+<!ELEMENT abs EMPTY> <!-- absolutive in ya -->
+<!ELEMENT per EMPTY> <!-- periphrastic perfect -->
+
+<!-- English and Devanagari equivalents -->
+<!-- present - law, imperfect - laN, optative - viDiliN, imperative - low, future - lfw, conditional - lfN, periphrastic future - luw, perfect - liw, aorist - luN, injunctive - AgamABAvayuktaluN, benedictive - ASIrliN -->
