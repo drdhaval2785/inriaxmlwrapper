@@ -68,7 +68,7 @@ def iteroverfiles(word):
 			outputlist.append(iter(findwordform(word, file)))
 	return "|".join(outputlist)
 
-#print iteroverfiles("ajIgamat")
+#print iteroverfiles("kAryate")
 def findrootword(checkedrootword):
 	listing = []
 	filelist = ['SL_nouns.xml', 'SL_roots.xml','SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml', ]
@@ -106,7 +106,7 @@ def constructor(analysedword):
 				outlist.append(rootdatum[-1])
 		return "|".join(outlist)
 
-print constructor(u'gam-v-cj-prim-sys-tp-aor-para-np-sg-trd-aoristgana-3')
+print constructor(u'kf#1-v-cj-ca-sys-pas-md-pr-np-sg-trd')
 
 def connripa():
 	f = open("nripadata1.csv", "r")
