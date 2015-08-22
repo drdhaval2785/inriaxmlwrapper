@@ -137,9 +137,9 @@ def devanagaridisplay(word):
 	datafetched = analyser(word)
 	# If there are tags which are not enumerated here, they can be added as and when there is a need.
 	database = [('v-cj-prim', 'प्राथमिक'),
-				('v-cj-ca', 'प्रेरक'),
-				('v-cj-int', 'intensive'),
-				('v-cj-des', 'desiderative'),
+				('v-cj-ca', 'णिजन्त'),
+				('v-cj-int', 'यङन्त'),
+				('v-cj-des', 'सन्नन्त'),
 				('sys-prs-md-pr', 'लट्'),
 				('sys-prs-md-ip', 'लोट्'),
 				('sys-prs-md-op', 'विधिलिङ्'),
@@ -179,16 +179,17 @@ def translator(word):
 	# verb database having (sanskrit, hindi) pairs
 	verbdata = [('BU','ho'), ('gam','jA'), ('ad','KA'), ('paW','paQa')]
 	datafetched = devanagaridisplay(word)
-	# suffix database having (sanskrit, first string, second string, third string) format. Usually the second string is used for 'rahatA ' etc auxillary verbs. Third string is used for 'honA' verb forms auxillary.
-	database = [('प्राथमिक-लट्-परस्मैपद-एकवचन-प्रथमपुरुष', 'tA ', '', 'hE'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-प्रथमपुरुष', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-प्रथमपुरुष', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-एकवचन-मध्यमपुरुष', 'tA ', '', 'hE'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-मध्यमपुरुष', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-मध्यमपुरुष', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-एकवचन-उत्तमपुरुष', 'tA ', '', 'hU~'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-उत्तमपुरुष', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-उत्तमपुरुष', 'te ', '', 'hE~'),
+	# suffix database having (sanskrit, preverb string, first string, second string, third string) format. Usually the second string is used for 'rahatA ' etc auxillary verbs. Third string is used for 'honA' verb forms auxillary.
+	# preverb string is placed before the verb form e.g. yaNanta forms boBUyate - bAra bAra karatA hE.
+	database = [('प्राथमिक-लट्-परस्मैपद-एकवचन-प्रथमपुरुष', '', 'tA ', '', 'hE'),
+				('प्राथमिक-लट्-परस्मैपद-द्विवचन-प्रथमपुरुष', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-परस्मैपद-बहुवचन-प्रथमपुरुष', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-परस्मैपद-एकवचन-मध्यमपुरुष', '', 'tA ', '', 'hE'),
+				('प्राथमिक-लट्-परस्मैपद-द्विवचन-मध्यमपुरुष', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-परस्मैपद-बहुवचन-मध्यमपुरुष', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-परस्मैपद-एकवचन-उत्तमपुरुष', '', 'tA ', '', 'hU~'),
+				('प्राथमिक-लट्-परस्मैपद-द्विवचन-उत्तमपुरुष', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-परस्मैपद-बहुवचन-उत्तमपुरुष', '', 'te ', '', 'hE~'),
 				]
 	output = datafetched
 	root1 = output.split("-")[0] # Sanskrit Root
@@ -199,9 +200,9 @@ def translator(word):
 	else:
 		print "Verb is not defined in Hindi database"
 		root2 = '????'
-	output = re.sub(root1+"-", root2, output) # Substituted Sanskrit root with Hindi root.
+	#output = re.sub(root1+"-", root2, output) # Substituted Sanskrit root with Hindi root.
 	for member in database:
-		output = re.sub(member[0], member[1] +member[2]+ member[3], output) # Substituted the attributes string with three strings
+		output = re.sub(root1+"-"+member[0], member[1]+root2+member[2] +member[3]+ member[4], output) # Substituted the attributes string with three strings
 	output = re.sub(r'([a])([aAiIuUeEoO])', r'\2', output) # This is post processing. e.g. jA+eMge = jAeMge, but kara+eMge = kareMge. There is elision of last 'a' of kara.
 	#output = transcoder.transcoder_processString(output, "slp1", "deva") # problem with windows. Kept commented right now.
 	output = re.sub("  ", " ", output) # removed consecutive two spaces.
