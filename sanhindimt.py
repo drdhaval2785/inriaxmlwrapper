@@ -144,15 +144,18 @@ def devanagaridisplay(word):
 				('sys-prs-md-ip', 'लोट्'),
 				('sys-prs-md-op', 'विधिलिङ्'),
 				('sys-prs-md-im', 'लङ्'),
-				('sys-pas-md', 'कर्मणि'),
+				('sys-pas-md-pr', 'लट्-कर्मणि'),
+				('sys-pas-md-ip', 'लोट्-कर्मणि'),
+				('sys-pas-md-op', 'विधिलिङ्-कर्मणि'),
+				('sys-pas-md-im', 'लङ्-कर्मणि'),
 				('sys-tp-fut', 'लृट्'),
 				('sys-tp-prf', 'लिट्'),
 				('sys-tp-aor', 'लुङ्'),
 				('sys-tp-inj', 'आगमाभावयुक्तलुङ्'),
 				('sys-tp-cnd', 'लृङ्'),
 				('sys-tp-ben', 'आशीर्लिङ्'),
-				('para', 'परस्मैपद'),
-				('atma', 'आत्मनेपद'),
+				('para', 'कर्तरि'),
+				('atma', 'कर्तरि'),
 				('pass', 'कर्मणि'),
 				('np-sg', 'एकवचन'),
 				('np-du', 'द्विवचन'),
@@ -179,17 +182,18 @@ def translator(word):
 	# verb database having (sanskrit, hindi) pairs
 	verbdata = [('BU','ho'), ('gam','jA'), ('ad','KA'), ('paW','paQa')]
 	datafetched = devanagaridisplay(word)
-	# suffix database having (sanskrit, preverb string, first string, second string, third string) format. Usually the second string is used for 'rahatA ' etc auxillary verbs. Third string is used for 'honA' verb forms auxillary.
+	# suffix database having (sanskrit, preverb string, auxillary string, first string, second string, third string) format. Usually the second string is used for 'rahatA ' etc auxillary verbs. Third string is used for 'honA' verb forms auxillary.
 	# preverb string is placed before the verb form e.g. yaNanta forms boBUyate - bAra bAra karatA hE.
-	database = [('प्राथमिक-लट्-परस्मैपद-एकवचन-प्रथमपुरुष', '', 'tA ', '', 'hE'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-प्रथमपुरुष', '', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-प्रथमपुरुष', '', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-एकवचन-मध्यमपुरुष', '', 'tA ', '', 'hE'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-मध्यमपुरुष', '', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-मध्यमपुरुष', '', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-एकवचन-उत्तमपुरुष', '', 'tA ', '', 'hU~'),
-				('प्राथमिक-लट्-परस्मैपद-द्विवचन-उत्तमपुरुष', '', 'te ', '', 'hE~'),
-				('प्राथमिक-लट्-परस्मैपद-बहुवचन-उत्तमपुरुष', '', 'te ', '', 'hE~'),
+	# auxillary string is placed for sannanta / yaNanta like 'nA cAha' in 'bAra bAra karanA cAhatA hE
+	database = [('प्राथमिक-लट्-कर्तरि-एकवचन-प्रथमपुरुष', '', '', 'tA ', '', 'hE'),
+				('प्राथमिक-लट्-कर्तरि-द्विवचन-प्रथमपुरुष', '', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-कर्तरि-बहुवचन-प्रथमपुरुष', '', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-कर्तरि-एकवचन-मध्यमपुरुष', '', '', 'tA ', '', 'hE'),
+				('प्राथमिक-लट्-कर्तरि-द्विवचन-मध्यमपुरुष', '', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-कर्तरि-बहुवचन-मध्यमपुरुष', '', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-कर्तरि-एकवचन-उत्तमपुरुष', '', '', 'tA ', '', 'hU~'),
+				('प्राथमिक-लट्-कर्तरि-द्विवचन-उत्तमपुरुष', '', '', 'te ', '', 'hE~'),
+				('प्राथमिक-लट्-कर्तरि-बहुवचन-उत्तमपुरुष', '', '', 'te ', '', 'hE~'),
 				]
 	output = datafetched
 	root1 = output.split("-")[0] # Sanskrit Root
@@ -202,7 +206,7 @@ def translator(word):
 		root2 = '????'
 	#output = re.sub(root1+"-", root2, output) # Substituted Sanskrit root with Hindi root.
 	for member in database:
-		output = re.sub(root1+"-"+member[0], member[1]+root2+member[2] +member[3]+ member[4], output) # Substituted the attributes string with three strings
+		output = re.sub(root1+"-"+member[0], member[1]+root2+member[2] +member[3]+ member[4]+member[5], output) # Substituted the attributes string with three strings
 	output = re.sub(r'([a])([aAiIuUeEoO])', r'\2', output) # This is post processing. e.g. jA+eMge = jAeMge, but kara+eMge = kareMge. There is elision of last 'a' of kara.
 	#output = transcoder.transcoder_processString(output, "slp1", "deva") # problem with windows. Kept commented right now.
 	output = re.sub("  ", " ", output) # removed consecutive two spaces.
@@ -219,7 +223,7 @@ def filetranslator(sanskritverbformfile,hindioutputfile):
 	for datum in data:
 		datum = datum.strip()
 		tobeput = translator(datum)
-		print datum, ' - ', tobeput
+		print datum, '-', tobeput
 		g.write(datum + " - " + tobeput + "\n")
 	f.close()
 	
