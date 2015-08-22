@@ -6,7 +6,6 @@ import re
 import transcoder
 import codecs
 
-	
 def findwordform(inputform, datafile):	
 	tree = etree.parse(datafile)
 	xpathname = '/forms/f[@form="' + inputform + '"]'
@@ -15,8 +14,8 @@ def findwordform(inputform, datafile):
 		return etree.tostring(member).strip() # This works for output of the chunk of xml
 
 def converttodevanagari(attributeslist):
-	gerardwords = ['nom', 'acc', 'ins', 'dat', 'abl', 'gen', 'loc', 'voc', 'mas', 'fem', 'neu', 'dei', 'sg', 'du', 'pl', 'fst', 'snd', 'trd', 'iic', 'iiv', 'iip', 'avyaya', 'na']
-	devawords =   [u'प्रथमा', u'द्वितीया', u'तृतीया', u'चतुर्थी', u'पञ्चमी', u'षष्ठी', u'सप्तमी', u'संबोधन', u'पुंल्लिङ्ग', u'स्त्रीलिङ्ग', u'नपुंसकलिङ्ग', u'सङ्ख्या', u'एकवचन', u'द्विवचन', u'बहुवचन', u'प्रथमपुरुष', u'मध्यमपुरुष', u'उत्तमपुरुष', u'समासपूर्वपद', u'सहायकधातुपूर्व', u'कृदन्तपूर्वपद', u'अव्यय', u'']
+	gerardwords = ['nom', 'acc', 'ins', 'dat', 'abl', 'gen', 'loc', 'voc', 'mas', 'fem', 'neu', 'dei', 'sg', 'du', 'pl', 'fst', 'snd', 'trd', 'iic', 'iiv', 'iip', 'avyaya', 'na', 'uf', 'conj']
+	devawords =   [u'प्रथमा', u'द्वितीया', u'तृतीया', u'चतुर्थी', u'पञ्चमी', u'षष्ठी', u'सप्तमी', u'संबोधन', u'पुंल्लिङ्ग', u'स्त्रीलिङ्ग', u'नपुंसकलिङ्ग', u'सङ्ख्या', u'एकवचन', u'द्विवचन', u'बहुवचन', u'प्रथमपुरुष', u'मध्यमपुरुष', u'उत्तमपुरुष', u'समासपूर्वपद', u'सहायकधातुपूर्व', u'कृदन्तपूर्वपद', u'अव्यय', u'', u'अव्यय', u'']
 	outputlist = []
 	for member in attributeslist:
 		alist = []
@@ -64,19 +63,19 @@ def iter(wordxml, strength="Full"):
 		wordwithtags.append(baseword + "-" + "-".join(member) )
 	return "|".join(wordwithtags)
 			
-def analyser(word, strength="deva"):
-	filelist = ['SL_nouns.xml', 'SL_roots.xml','SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml', ]
+def analyser(word, strength="Full"):
+	filelist = ['SL_roots.xml']
 	outputlist = []
 	for file in filelist:
 		if findwordform(word, file) is not None:
 			outputlist.append(iter(findwordform(word, file), strength))
 	return "|".join(outputlist)
 
-print analyser("DavalAt")
+#print analyser("gamyate")
 
 def findrootword(checkedrootword):
 	listing = []
-	filelist = ['SL_nouns.xml', 'SL_roots.xml','SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml', ]
+	filelist = ['SL_roots.xml']
 	for datafile in filelist:
 		tree = etree.parse(datafile)
 		entries = tree.xpath('.//f')
@@ -114,14 +113,88 @@ def generator(analysedword, translit="slp1"):
 			return transcoder.transcoder_processString("|".join(outlist),'slp1','deva')
 		else:
 			return "|".join(outlist)
+#print generator('Davala-sg-mas-abl', 'deva')
 
-print generator('Davala-sg-mas-abl', 'deva')
+sanskritverb = ['BU', 'gam']
+hindiverb = ['हो', 'जा']
+def devanagaridisplay(word):
+	if word[-1] == 'H':
+		word = word[:-1]+"s"
+	datafetched = analyser(word)
+	database = [(u'v-cj-prim', u'प्राथमिक'),
+				(u'v-cj-ca', u'प्रेरक'),
+				(u'v-cj-int', u'intensive'),
+				(u'v-cj-des', u'desiderative'),
+				(u'sys-prs-md-pr', u'लट्'),
+				(u'sys-prs-md-ip', u'लोट्'),
+				(u'sys-prs-md-op', u'विधिलिङ्'),
+				(u'sys-prs-md-im', u'लङ्'),
+				(u'sys-pas-md', u'कर्मणि'),
+				(u'sys-tp-fut', u'लृट्'),
+				(u'sys-tp-prf', u'लिट्'),
+				(u'sys-tp-aor', u'लुङ्'),
+				(u'sys-tp-inj', u'आगमाभावयुक्तलुङ्'),
+				(u'sys-tp-cnd', u'लृङ्'),
+				(u'sys-tp-ben', u'आशीर्लिङ्'),
+				(u'para', u'परस्मैपद'),
+				(u'atma', u'आत्मनेपद'),
+				(u'pass', u'कर्मणि'),
+				(u'np-sg', u'एकवचन'),
+				(u'np-du', u'द्विवचन'),
+				(u'np-pl', u'बहुवचन'),
+				(u'fst', u'उत्तमपुरुष'),
+				(u'snd', u'मध्यमपुरुष'),
+				(u'trd', u'प्रथमपुरुष'),
+				(u'-verbgana', u''),
+				(u'-aoristgana', u''),
+				(u'-injunctivegana', u''),
+				(u'-1', u''),
+				(u'-2', u''),
+				(u'-3', u''),
+				(u'-4', u''),
+				(u'-5', u''),
+				(u'-6', u''),
+				(u'-7', u''),
+				(u'-8', u''),
+				(u'-9', u''),
+				(u'-10', u''),
+				]
+	output = datafetched
+	for member in database:
+		output = re.sub(member[0], member[1], output)
+	root1 = output.split("-")[0]
+	root2 = root1.split("#")[0]
+	output = re.sub(root1, root2, output)
+	output = transcoder.transcoder_processString(output, "slp1", "deva")
+	return output
 
-def connripa():
-	f = open("nripadata1.csv", "r")
-	data = f.read()
-	f.close()
-	g = codecs.open("nripadeva.csv", 'w', 'utf-8')
-	data = transcoder.transcoder_processString(data, "slp1", "deva")
-	g.write(data)
-	g.close()
+def translator(word):
+	verbdata = [(u'भू',u'हो'), (u'गम्',u'जा'), (u'अद्',u'खा')]
+	datafetched = devanagaridisplay(word)
+	database = [(u'प्राथमिक-लट्-परस्मैपद-एकवचन-प्रथमपुरुष', u'ता', u'', u'है'),
+				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-प्रथमपुरुष', u'ते', u'', u'हैं'),
+				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-प्रथमपुरुष', u'ते', u'', u'हैं'),
+				(u'प्राथमिक-लट्-परस्मैपद-एकवचन-मध्यमपुरुष', u'ता', u'', u'है'),
+				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-मध्यमपुरुष', u'ते', u'', u'हैं'),
+				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-मध्यमपुरुष', u'ते', u'', u'हैं'),
+				(u'प्राथमिक-लट्-परस्मैपद-एकवचन-उत्तमपुरुष', u'ता', u'', u'हूँ'),
+				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-उत्तमपुरुष', u'ते', u'', u'हैं'),
+				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-उत्तमपुरुष', u'ते', u'', u'हैं'),
+				]
+	output = datafetched
+	for member in database:
+		output = re.sub(member[0], member[1]+" "+member[2]+" "+member[3], output)
+	root1 = output.split("-")[0]
+	root2 = root1.split("#")[0]
+	for verbdatum in verbdata:
+		if root2 == verbdatum[0]:
+			root2 = verbdatum[1]
+			break
+	else:
+		print "Verb is not defined in Hindi database"
+	output = re.sub(root1+"-", root2, output)
+	output = transcoder.transcoder_processString(output, "slp1", "deva")
+	output = re.sub("  ", " ", output)
+	return output
+
+print translator("BavAmi")

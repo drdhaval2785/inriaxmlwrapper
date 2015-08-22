@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#-*- coding:utf-8 -*-
+# This Python file uses the following encoding: utf-8
 
 """ Python version of transcoder. 
     Uses built-in library xml.etree.ElementTree,
