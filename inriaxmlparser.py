@@ -167,34 +167,3 @@ def devanagaridisplay(word):
 	output = re.sub(root1, root2, output)
 	output = transcoder.transcoder_processString(output, "slp1", "deva")
 	return output
-
-def translator(word):
-	verbdata = [(u'भू',u'हो'), (u'गम्',u'जा'), (u'अद्',u'खा')]
-	datafetched = devanagaridisplay(word)
-	database = [(u'प्राथमिक-लट्-परस्मैपद-एकवचन-प्रथमपुरुष', u'ता', u'', u'है'),
-				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-प्रथमपुरुष', u'ते', u'', u'हैं'),
-				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-प्रथमपुरुष', u'ते', u'', u'हैं'),
-				(u'प्राथमिक-लट्-परस्मैपद-एकवचन-मध्यमपुरुष', u'ता', u'', u'है'),
-				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-मध्यमपुरुष', u'ते', u'', u'हैं'),
-				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-मध्यमपुरुष', u'ते', u'', u'हैं'),
-				(u'प्राथमिक-लट्-परस्मैपद-एकवचन-उत्तमपुरुष', u'ता', u'', u'हूँ'),
-				(u'प्राथमिक-लट्-परस्मैपद-द्विवचन-उत्तमपुरुष', u'ते', u'', u'हैं'),
-				(u'प्राथमिक-लट्-परस्मैपद-बहुवचन-उत्तमपुरुष', u'ते', u'', u'हैं'),
-				]
-	output = datafetched
-	for member in database:
-		output = re.sub(member[0], member[1]+" "+member[2]+" "+member[3], output)
-	root1 = output.split("-")[0]
-	root2 = root1.split("#")[0]
-	for verbdatum in verbdata:
-		if root2 == verbdatum[0]:
-			root2 = verbdatum[1]
-			break
-	else:
-		print "Verb is not defined in Hindi database"
-	output = re.sub(root1+"-", root2, output)
-	output = transcoder.transcoder_processString(output, "slp1", "deva")
-	output = re.sub("  ", " ", output)
-	return output
-
-print translator("BavAmi")
