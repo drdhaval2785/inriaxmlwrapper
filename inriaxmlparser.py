@@ -64,7 +64,7 @@ def iter(wordxml, strength="Full"):
 	return "|".join(wordwithtags)
 			
 def analyser(word, strength="Full"):
-	filelist = ['SL_roots.xml']
+	filelist = ['SL_roots.xml','SL_nouns.xml','SL_adverbs.xml','SL_parts.xml','SL_pronouns.xml']
 	outputlist = []
 	for file in filelist:
 		if findwordform(word, file) is not None:
@@ -75,7 +75,7 @@ def analyser(word, strength="Full"):
 
 def findrootword(checkedrootword):
 	listing = []
-	filelist = ['SL_roots.xml']
+	filelist = ['SL_roots.xml','SL_nouns.xml','SL_adverbs.xml','SL_parts.xml','SL_pronouns.xml']
 	for datafile in filelist:
 		tree = etree.parse(datafile)
 		entries = tree.xpath('.//f')
@@ -102,8 +102,6 @@ def generator(analysedword, translit="slp1"):
 		taglist = separate[1:]
 		if taglist[-1] in ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10'] and taglist[-2] in ['verbgana', 'aoristgana', 'injunctivegana']:
 			taglist = taglist[:-2]
-		#print rootword
-		#print taglist
 		datahavingroot = findrootword(rootword)
 		outlist = []
 		for rootdatum in datahavingroot:
@@ -136,6 +134,7 @@ def devanagaridisplay(word):
 				(u'sys-tp-inj', u'आगमाभावयुक्तलुङ्'),
 				(u'sys-tp-cnd', u'लृङ्'),
 				(u'sys-tp-ben', u'आशीर्लिङ्'),
+				(u'sys-pef', u'लुट्'),
 				(u'para', u'परस्मैपद'),
 				(u'atma', u'आत्मनेपद'),
 				(u'pass', u'कर्मणि'),
@@ -167,3 +166,5 @@ def devanagaridisplay(word):
 	output = re.sub(root1, root2, output)
 	output = transcoder.transcoder_processString(output, "slp1", "deva")
 	return output
+
+print analyser("Bavati")
