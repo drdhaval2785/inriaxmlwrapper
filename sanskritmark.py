@@ -84,7 +84,7 @@ def analyser(word, strength="Full"):
 			outputlist.append(iter(findwordform(word, file), strength)) # Append the base word with its attributes to outputlist
 	return "|".join(outputlist) # Show the data separated by '|' in case there are more than one datum.
 
-#print analyser("gamyate")
+print analyser("DavalAnAm")
 
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 # The approach 
@@ -186,6 +186,6 @@ def devanagaridisplay(word):
 	root1 = output.split("-")[0]
 	root2 = root1.split("#")[0] # Gerard sometimes adds # to denote number of verb in his dictionary. Removed the number for our usage.
 	output = re.sub(root1, root2, output)
-	#output = transcoder.transcoder_processString(output, "slp1", "deva") # This code creates some issue in windows setting. Therefore not converting to Devanagari right now. Will do that later.
+	output = transcoder.transcoder_processString(output, "slp1", "deva") # This code creates some issue in windows setting. Therefore not converting to Devanagari right now. Will do that later.
 	return output
 
