@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"><head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <title>Inriawrapper 1.0.0 - Documentation</title>
+    
+    <link rel="stylesheet" href="documentation_files/default.css" type="text/css">
+    <link rel="stylesheet" href="documentation_files/pygments.css" type="text/css">
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '4.4.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="documentation_files/jquery.js"></script>
+    <script type="text/javascript" src="documentation_files/underscore.js"></script>
+    <script type="text/javascript" src="documentation_files/doctools.js"></script>
+    <link rel="top" title="Inriawrapper 1.0.0 - Documentation" href="#"> 
+  </head>
+  <body>
+    <div class="related">
+      <ul>
+        <li><a href="#">Inriawrapper 1.0.0 - Documentation</a> »</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="Inriawrapper 1.0.0-documentation">
+<h1>Inriawrapper 1.0.0 - Documentation<a class="headerlink" href="#Inriawrapper 1.0.0-documentation" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://github.com/drdhaval2785/inriawrapper">Inriawrapper</a> is a
+Python library for to make maximum use of Sanskrit related tools available at <a href="http://sanskrit.inria.fr/">http://sanskrit.inria.fr/</a>.
+It gives facilities to decline a word in Sanskrit from its root with given parameters.</p>
+
+<div class="section" id="getting-help">
+<h2>Getting help<a class="headerlink" href="#getting-help" title="Permalink to this headline">¶</a></h2>
+<p>If you have questions about Inriawrapper, or run into problems, send your mail to drdhaval2785@gmail.com.</p>
+</div>
+</div>
+
+<div class="section" id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+<p>The following are the major functions offered by this module : </p>
+	<ol>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">s(noun.gender.case.vacana)</span></pre></div></div> returns subanta form of 'noun' which has 'gender' gender, 'case' case and 'vacana' vacana. e.g. s('Davala.m.1.1') generates धवलः</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">v(verb.gana.pada.lakara.vacya.purusa.vacana)</span></pre></div></div> returns tiGanta form of 'verb' which belongs to 'gana' gana, has 'pada' pada, is in 'lakara' tense, has 'vacya' voice, 'purusa' person, and 'vacana' vacana. e.g. v('gam.1.p.law.t.1.1') generates गच्छति</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">k(verb.gana.kridanta.gender.case.vacana)</span></pre></div></div> returns kridanta form of 'verb' which belongs to 'gana' gana, is in 'kridanta' form, has 'gender' gender, 'case' case, and 'vacana' vacana. e.g. k('gam.1.4.m.3.1') generates गच्छमानेन</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">adv(adverb.adv)</span></pre></div></div> returns adverbial form of 'adverb' e.g. adv('Jawiti.adv') generates झटिति.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">d(text)</span></pre></div></div> returns subanta / tiGanta / kridanta / adverbial form from a given word, proivded the 'text' is in proper <a href="https://github.com/drdhaval2785/inriawrapper/blob/master/SanskritMark.md">SanskritMark</a> specifications. e.g. d('Davala.m.1.1') generates धवलः and v('gam.1.p.law.t.1.1') generates गच्छति. the user doesn't have to bother about selecting 's', 'v', 'k' or 'adv' functions. The choice is made by machine in this usage.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">dc(inputfile,outputfile)</span></pre></div></div> dc (dictionary converter) converts a file of SanskritMark words into Devanagari output file. The input file must have only one word in each line.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">sdc(inputfile,outputfile)</span></pre></div></div> sdc (Sanskritmark-> Devanagari converter) function converts document written in SanskritMark to Devanagari output.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">wtd(devanagariword)</span></pre></div></div> wtd (word type decider) returns the type of input word like Noun, Verb etc e.g. wtd(धवलः) returns 'Noun' wtd(गच्छति) returns 'Verb'.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">r(devanagariword)</span></pre></div></div> returns SanskritMark equivalent of given Devanagari word e.g. r('धवलः') returns 'Davala.m.1.1' and r('गच्छति') returns 'gam.1.p.law.t.1.1'.</li>
+		<li><div class="highlight-python"><div class="highlight"><pre><span class="n">dsc(inputfile,outputfile)</span></pre></div></div> dsc(Devanagari -> SanskritMark converter) function converts document written in Devanagari to SanskritMark.</li>
+	</ol>
+	<p>You can import the module and use it in python shell or your python file as shown below:</p>
+		<div class="highlight-python"><div class="highlight"><pre><span class="n">import inriawrapper as i
+print i.d('Davala.m.1.1')
+#धवलः</span></pre></div></div>
+			  </div>
+
+<div class="section" id="requirements">
+<h1>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h1>
+	<ol>
+		<li><a href="https://www.python.org/">python2.7</a></li>
+		<li><a href="http://www.crummy.com/software/BeautifulSoup/">BeautifulSoup</a></li>
+		<li>Libraries used - codecs, urllib2, datetime, time, re</li>
+		<li><a href="https://github.com/funderburkjim/sanskrit-transcoding">Transcoder</a> module by Jim Funderburk</li>
+	</ol>	
+</div>
+
+<div class="section" id="Todo">
+<h1>Todo<a class="headerlink" href="#Todo" title="Permalink to this headline">¶</a></h1>
+	<p>The library is still under development. The expected outcome of the project are as follow.
+	<ol>
+		<li>To derive a python functionality for declention of *noun* forms based on http://sanskrit.inria.fr/DICO/grammar.en.html - *Done*</li>
+		<li>To derive a python functionality for declention of *verb* forms based on http://sanskrit.inria.fr/DICO/grammar.en.html - *Done*</li>
+		<li>To derive a python functionality for declention of *kridanta* forms based on http://sanskrit.inria.fr/DICO/grammar.en.html</li>
+		<li>To develop [SanskritMark](https://github.com/drdhaval2785/inriawrapper/blob/master/SanskritMark.md) (a specification like markdown for writing Sanskrit stuff) which can be benifited by the present scripts. - *Done Primary Draft*</li>
+		<li>To derive a python functionality for dictionary lookup of a Sanskrit word based on http://www.sanskrit-lexicon.uni-koeln.de/ data</li>
+		<li>To derive a python functionality for getting the possible details of the root noun / verb from inflected words (based on http://sanskrit.inria.fr/DICO/index.en.html#stemmer). - *Done*</li>
+		<li>Write a parser for texts written in the specification mentioned in point 4.- *Done*</li>
+		<li>Write a converter from txt to SanskritMark - *Done*</li>
+		<li>Write a converter from SanskritMark to txt - *Done*</li>
+		<li>Write a converter from html to SanskritMark and vice versa.</li>
+		<li>To derive a python functionality for sandhi generation given in http://sanskrit.inria.fr/DICO/sandhi.en.html</li>
+	</ol>	
+</div>
+
+<div class="section" id="Functions">
+<h1>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h1>
+<p>The following subsections would show the explanation of different parameters of various functions.</p>
+
+<div class="section" id="s">
+<h2>s(noun.gender.case.vacana)<a class="headerlink" href="#s" title="Permalink to this headline">¶</a></h2>
+<p>'gender' takes 'm'/'f'/'n'/'a' for musculine, feminine, neuter and any gender.<br/>
+'case' takes '1'/'2'/'3'/'4'/'5'/'6'/'7'/'0' for nominative/accusative/instrumental/dative/ablative/genitive/locative and sambodhana respectively.<br/>
+'vacana' takes '1'/'2'/'3' for ekavacana, dvivacana and bahuvacana respectively<br/><br/>
+e.g. s('Davala.m.1.1')<br/><br/>
+N.B. For noun, pronoun and vocative derivation, this function is useful.
+</p>
+</div>
+<div class="section" id="v">
+<h2>v(verb.gana.pada.lakara.vacya.purusa.vacana)<a class="headerlink" href="#v" title="Permalink to this headline">¶</a></h2>
+<p>'gana' takes '1' to '10' where they are usual gaNas in pANini's grammar. Use '0' for secondary verbs.<br/>
+'pada' takes 'p'/'a' for parasmaipada and Atmanepada respectively.<br/>
+'lakara' takes 'law'/'laN'/'viliN'/'low'/'lfw'/'lfN'/'luw'/'liw'/'luN'/'aluN'/'AliN'. viliN stands for viDiliN. aluN stands for AgamAbhAvayuktaluN, AliN stands for ASIrliN. All others have their usual notations in pANini's grammar.<br/>
+'vacya' takes 't' / 'm' for kartari and karmaNi respectively.<br/>
+'purusa' takes 'p'/'m'/'u' for prathama, madhyama, uttama respectively.<br/>
+'vacana' takes '1'/'2'/'3' for ekavacana, dvivacana and bahuvacana respectively.<br/><br/>
+e.g. v('gam.1.p.law.t.1.1')
+</p>
+</div>
+<div class="section" id="adv">
+<h2>adv(adverb.adv)<a class="headerlink" href="#v" title="Permalink to this headline">¶</a></h2>
+<p>'advreb' is the adverb that is to be declined.<br/>
+'adv' is a constant string.<br/><br/>
+e.g. adv('Jawiti.adv')
+</p>
+</div>
+<div class="section" id="k">
+<h2>k(verb.gana.kridanta.gender.case.vacana)<a class="headerlink" href="#k" title="Permalink to this headline">¶</a></h2>
+<p>'gana' takes '1' to '10' where they are usual gaNas in pANini's grammar. Use '0' for secondary verbs.<br/>
+# 'kridanta' takes '1' for 'kta', '2' for 'ktavat', '3' for 'Satf', '4' for 'SAnac', '5' for 'SAnac Atmanepada', '6' for 'luwAdeSa parasmaipada', '7' for 'luwAdeSa Atmanepada', '8' for 'tavya', '9' for 'yat', '10' for 'anIyar', '11' for 'Ryat', '12' for 'liqparasmai' and '13' for 'liqAtmane'.<br/>
+'gender' takes 'm' for musculine, 'f' for feminine and 'n' for neuter.<br/>
+'case' takes '1' for nominative, '2' for accusative, '3' for instrumental, '4' for dative, '5' for ablative, '6' for genitive, '7' for locative and '0' for sambodhana.<br/>
+'vacana' takes '1' for ekavacana, '2' for dvivacana and '3' for bahuvacana respectively.<br/><br/>
+e.g. k('gam.1.4.m.1.1')
+</p>
+</div>
+<div class="section" id="d">
+<h2>d(text)<a class="headerlink" href="#d" title="Permalink to this headline">¶</a></h2>
+<p>function 'd' stands for declention. It decides the proper declention function to chose i.e. 's', 'v', 'k' or 'adv'.<br/>
+	The 'text' should be in proper SanskritMark specifications e.g. 'Davala.m.1.1' or 'gam.1.p.law.t.1.1'<br/><br/>
+	
+	e.g. d('Davala.m.1.1')
+</p>
+</div>
+<div class="section" id="dc">
+<h2>dc(inputfile, outputfile)<a class="headerlink" href="#dc" title="Permalink to this headline">¶</a></h2>
+<p>This function converts a file of SanskritMark words into Devanagari output file.<br/>
+	The input file must have only one word in each line.<br/><br/>
+	
+	e.g. dc('input.txt', 'output.txt')
+</p>
+</div>
+<div class="section" id="sdc">
+<h2>sdc(inputfile, outputfile)<a class="headerlink" href="#sdc" title="Permalink to this headline">¶</a></h2>
+<p>Function sdc(Sanskritmark-> Devanagari converter) converts document written in SanskritMark to Devanagari output.<br/>
+	The input should be stored in a text file. words must be separated by space.<br/><br/>
+	
+	e.g. sdc('input.txt', 'output.txt')
+</p>
+</div>
+<div class="section" id="wtd">
+<h2>wtd(devanagariword)<a class="headerlink" href="#wtd" title="Permalink to this headline">¶</a></h2>
+<p>Function wtd (word type decider) decides the type of input word e.g. Noun, Verb etc.<br/>
+	Possible output are ['Verb', 'Noun', 'Pron', 'Part', 'Advb', 'Abso', 'Voca', 'Iic', 'Ifc', 'Iiv', 'Piic']<br/>
+	For full form of abbreviations see <a href="http://sanskrit.inria.fr/abrevs.pdf">this document.</a><br/><br/>
+	
+	e.g. wtd('धवलः')
+</p>
+</div>
+<div class="section" id="r">
+<h2>r(devanagariword)<a class="headerlink" href="#r" title="Permalink to this headline">¶</a></h2>
+<p>Function 'r' converts a word from Devanagari to SanskritMark.<br/>
+	For verbs, the expected output format is verb.gana.pada.lakara.vacya.purusa.vacana<br/>
+	For nouns, the expected output format is noun.gender.case.vacana<br/>
+	If there are more than one parsing possible, the expected output is separated by '|'.<br/><br/>
+	
+	e.g. r('धवलः')
+</p>
+</div>
+<div class="section" id="dsc">
+<h2>dsc(inputfile,outputfile)<a class="headerlink" href="#dsc" title="Permalink to this headline">¶</a></h2>
+<p>function dsc (Devanagari -> SanskritMark converter) to convert document written in Devanagari to SanskritMark.<br/>
+	The input should be stored in a file.<br/>
+	Words must be separated by space.<br/><br/>
+	
+	e.g. dsc('input.txt', 'output.txt')
+</p>
+</div>
+			  </div>
+</body></html>
