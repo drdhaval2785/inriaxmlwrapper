@@ -4,19 +4,47 @@
 # XML database of verbs taken from sanskrit.inria.fr site of Gerard Huet. For sample, please see SL_roots.xml
 # Date - 21 August 2015
 # Version - 1.0.0
-
 from lxml import etree
 from io import StringIO, BytesIO
 import re
 import transcoder
+import codecs
+import datetime
 
+def printtimestamp():
+	return datetime.datetime.now()
+
+print "Parsing of XMLs started at", printtimestamp()
+roots = etree.parse('SL_roots.xml')
+nouns = etree.parse('SL_nouns.xml')
+adverbs = etree.parse('SL_adverbs.xml')
+final = etree.parse('SL_final.xml')
+parts = etree.parse('SL_parts.xml')
+pronouns = etree.parse('SL_pronouns.xml')
+filelist = [roots, nouns, adverbs, final, parts, pronouns]
+#filelist = [parts]
+print "Parsing of XMLs completed at", printtimestamp()
+print "Starting analysis at", printtimestamp()
+#print "Will notify after every 100 words analysed."
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
-def findwordform(inputform, datafile):	
-	tree = etree.parse(datafile) # Prepared an element tree in lxml
-	xpathname = '/forms/f[@form="' + inputform + '"]' # Defined the xpath to search
-	r = tree.xpath(xpathname) # Created a list 'r' whose members are lines of XML file which correspond to the word form 'inputform'
-	for member in r:
-		return etree.tostring(member).strip() # Created a string out of element tree. strip() removes unnecessary white spaces around the string.
+def findwordform(inputform):
+	#print "importing filelist for findwordform started at", printtimestamp()
+	global filelist
+	#print "importing filelist for findwordform ended at", printtimestamp()
+	outputlist = []
+	for file in filelist:
+		tree = file
+		xpathname = '/forms/f[@form="' + inputform + '"]' # Defined the xpath to search
+		#print "xpath parsing for findwordform started at", printtimestamp() # After speed analysis, this function is the most time expensive. It takes around 0.10 sec per word form.
+		r = tree.xpath(xpathname) # Created a list 'r' whose members are lines of XML file which correspond to the word form 'inputform'
+		#print "xpath parsing for findwordform ended at", printtimestamp()
+		for member in r:
+			outputlist.append(etree.tostring(member).strip()) # Created a string out of element tree. strip() removes unnecessary white spaces around the string.
+	#print "findwordform completed at", printtimestamp()
+	if len(outputlist) == 0:
+		return "????"
+	else:
+		return "|".join(outputlist)
 
 # function converttodevanagari is used to translate the short forms used by Gerard Huet to their Sanskrit Devanagari counterpart.
 def converttodevanagari(attributeslist):
@@ -35,56 +63,57 @@ def converttodevanagari(attributeslist):
 # function iter is to iterate over the XML file and get following from a given word form - Base root and attributes
 # Default strength is "Full". "deva" converts the output to Devanagari, which is not advisable to use for any other use than testing. 
 def iter(wordxml, strength="Full"):
-	wordxml = unicode(wordxml) # Converted the word to unicode
-	tree = StringIO(wordxml) # Created XML from the worddata
-	context = etree.parse(tree) # Parsed the element tree.
-	root = context.getroot() # got the root of element tree e.g. 'f'
-	# The next two steps require explanation. In Gerard's XML files, All possible attributes are given as children of 'f'. The last child is always 's' which stores the stem. All other children are the various possible word attributes. Given as 'na' or 'v' etc. Gio
-	children = root.getchildren()[:-1] # attributes
-	basedata = root.getchildren()[-1] # 's' stem
-	basewordslp = basedata.get('stem').strip() # Base word in SLP1 encoding.
-	if strength == "deva":
-		baseword = transcoder.transcoder_processString(basewordslp,'slp1','deva') # If the user wants output in Devanagari rather than SLP1, this code converts it to Devanagari.
+	if wordxml == "????":
+		return "????"
 	else:
-		baseword = basewordslp # Otherwise in SLP1.
-	attributes = [] # An empty list to store attributes.
-	for child in children:
-		taglist = child.xpath('.//*') # Fetches all elements (abbreviations) of a particular verb / word characteristics.
-		output = [child.tag] # The first member of output list is the tag of element 'v', 'na' etc.
-		output = output + [ tagitem.tag for tagitem in taglist] # Other tags (abbreviations) and add it to output list.
-		# The following section is commented out right now. But it would be needed for situation where we need to konw the gaNa of a verb or 7 kinds of aorist derivation.
-		"""if len(child.xpath('.//prs[@gn]')) > 0:
-			prsgana = child.xpath('.//prs')[0].get('gn')
-			output.append('verbgana')
-			output.append(prsgana)
-		elif len(child.xpath('.//aor[@gn]')) > 0:
-			aorgana = child.xpath('.//aor')[0].get('gn')
-			output.append('aoristgana')
-			output.append(aorgana)
-		elif len(child.xpath('.//inj[@gn]')) > 0:
-			injgana = child.xpath('.//inj')[0].get('gn')
-			output.append('injunctivegana')
-			output.append(injgana)"""
-		attributes.append(output) # output list is appended to attributes list.
-	if (strength == "deva"):
-		outputlist = converttodevanagari(attributes) # Devanagari
-	else:
-		outputlist = attributes # SLP1
-	wordwithtags = [] # Empty list
-	for member in outputlist:
-		wordwithtags.append(baseword + "-" + "-".join(member) ) # Created a list wordwithtags where the first member is baseword and the rest of the members are attributes separated by '-'
-	return "|".join(wordwithtags) # If there are more than one possible verb characteristics for a given form, they are shown separated by a '|'
+		wordxml = unicode(wordxml) # Converted the word to unicode
+		wordwithtags = [] # Empty list
+		individualentries = wordxml.split('|')
+		for individualentry in individualentries:
+			tree = StringIO(individualentry) # Created XML from the worddata
+			#print "parsing of iter started at", printtimestamp()
+			context = etree.parse(tree) # Parsed the element tree.
+			#print "parsing of iter ended at", printtimestamp()
+			root = context.getroot() # got the root of element tree e.g. 'f'
+			# The next two steps require explanation. In Gerard's XML files, All possible attributes are given as children of 'f'. The last child is always 's' which stores the stem. All other children are the various possible word attributes. Given as 'na' or 'v' etc. Gio
+			children = root.getchildren()[:-1] # attributes
+			basedata = root.getchildren()[-1] # 's' stem
+			basewordslp = basedata.get('stem').strip() # Base word in SLP1 encoding.
+			if strength == "deva":
+				baseword = transcoder.transcoder_processString(basewordslp,'slp1','deva') # If the user wants output in Devanagari rather than SLP1, this code converts it to Devanagari.
+			else:
+				baseword = basewordslp # Otherwise in SLP1.
+			attributes = [] # An empty list to store attributes.
+			for child in children:
+				taglist = child.xpath('.//*') # Fetches all elements (abbreviations) of a particular verb / word characteristics.
+				output = [child.tag] # The first member of output list is the tag of element 'v', 'na' etc.
+				output = output + [ tagitem.tag for tagitem in taglist] # Other tags (abbreviations) and add it to output list.
+				# The following section is commented out right now. But it would be needed for situation where we need to konw the gaNa of a verb or 7 kinds of aorist derivation.
+				"""if len(child.xpath('.//prs[@gn]')) > 0:
+					prsgana = child.xpath('.//prs')[0].get('gn')
+					output.append('verbgana')
+					output.append(prsgana)
+				elif len(child.xpath('.//aor[@gn]')) > 0:
+					aorgana = child.xpath('.//aor')[0].get('gn')
+					output.append('aoristgana')
+					output.append(aorgana)
+				elif len(child.xpath('.//inj[@gn]')) > 0:
+					injgana = child.xpath('.//inj')[0].get('gn')
+					output.append('injunctivegana')
+					output.append(injgana)"""
+				attributes.append(output) # output list is appended to attributes list.
+			if (strength == "deva"):
+				outputlist = converttodevanagari(attributes) # Devanagari
+			else:
+				outputlist = attributes # SLP1
+			for member in outputlist:
+				wordwithtags.append(baseword + "-" + "-".join(member) ) # Created a list wordwithtags where the first member is baseword and the rest of the members are attributes separated by '-'
+		#print "postprocessing of iter ended at", printtimestamp()
+		return "|".join(wordwithtags) # If there are more than one possible verb characteristics for a given form, they are shown separated by a '|'
 
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
 def analyser(word, strength="Full"):
-	filelist = ['SL_roots.xml', 'SL_nouns.xml', 'SL_adverbs.xml', 'SL_final.xml', 'SL_parts.xml', 'SL_pronouns.xml']
-	outputlist = []
-	for file in filelist:
-		if findwordform(word, file) is not None: # If there is a line in XML matching the searched word
-			outputlist.append(iter(findwordform(word, file), strength)) # Append the base word with its attributes to outputlist
-	return "|".join(outputlist) # Show the data separated by '|' in case there are more than one datum.
-
-print analyser("DavalAnAm")
+	return iter(findwordform(word), strength)
 
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 # The approach 
@@ -132,9 +161,11 @@ def generator(analysedword, translit="slp1"):
 # devangaridisplay and translator functions are created for Nripendra Pathak, so that he may provide necessary data for extending the code.
 # function devanagaridisplay will show the attribute list from XML files in a format which a traditional Sanskrit scholar may understand easily.
 def devanagaridisplay(word):
-	if word[-1] == 'H':
-		word = word[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
-	datafetched = analyser(word)
+	if len(word) > 1:
+		if word[-1] == 'H':
+			word = word[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
+		elif word[-1] == 'M':
+			word = word[:-1]+"m"
 	# If there are tags which are not enumerated here, they can be added as and when there is a need.
 	database = [('v-cj-prim', 'प्राथमिक'),
 				('v-cj-ca', 'णिजन्त'),
@@ -155,9 +186,6 @@ def devanagaridisplay(word):
 				('sys-tp-cnd', 'लृङ्'),
 				('sys-tp-ben', 'आशीर्लिङ्'),
 				('sys-pef', 'लुट्'),
-				('para', 'कर्तरि'),
-				('atma', 'कर्तरि'),
-				('pass', 'कर्मणि'),
 				('np-sg', 'एकवचन'),
 				('np-du', 'द्विवचन'),
 				('np-pl', 'बहुवचन'),
@@ -179,13 +207,95 @@ def devanagaridisplay(word):
 				('fem', 'स्त्रीलिङ्ग'),
 				('neu', 'नपुंसकलिङ्ग'),
 				('dei', 'सङ्ख्या'),
+				('uf', 'अव्यय'),
+				('ind', 'क्रियाविशेषण'),
+				('interj', 'उद्गार'),
+				('parti', 'निपात'),
+				('prep', 'चादि'),
+				('conj', 'संयोजक'),
+				('tasil', 'तसिल्'),
+				('vu-cj-prim', 'अव्ययधातुरूप-प्राथमिक'),
+				('vu-cj-ca', 'अव्ययधातुरूप-णिजन्त'),
+				('vu-cj-int', 'अव्ययधातुरूप-यङन्त'),
+				('vu-cj-des', 'अव्ययधातुरूप-सन्नन्त'),
+				('iv-inf','तुमुन्'),
+				('iv-abs','क्त्वा'),
+				('iv-per','per'),
+				('ab-cj-prim', 'क्त्वा-प्राथमिक'),
+				('ab-cj-ca', 'क्त्वा-णिजन्त'),
+				('ab-cj-int', 'क्त्वा-यङन्त'),
+				('ab-cj-des', 'क्त्वा-सन्नन्त'),
+				('kr-cj-prim-no', 'प्राथमिक'),
+				('kr-cj-ca-no', 'णिजन्त'),
+				('kr-cj-int-no', 'यङन्त'),
+				('kr-cj-des-no', 'सन्नन्त'),
+				('kr-vb-no', ''),
+				('ppp', 'कर्मणिभूतकृदन्त'),
+				('ppa', 'कर्तरिभूतकृदन्त'),
+				('pprp', 'कर्मणिवर्तमानकृदन्त'),
+				('ppr-para', 'कर्तरिवर्तमानकृदन्त-परस्मै'),
+				('ppr-atma', 'कर्तरिवर्तमानकृदन्त-आत्मने'),
+				('ppft-para', 'पूर्णभूतकृदन्त-परस्मै'),
+				('ppft-atma', 'पूर्णभूतकृदन्त-आत्मने'),
+				('pfutp', 'कर्मणिभविष्यत्कृदन्त'),
+				('pfut-para', 'कर्तरिभविष्यत्कृदन्त-परस्मै'),
+				('pfut-atma', 'कर्तरिभविष्यत्कृदन्त-आत्मने'),
+				('gya', 'य'),
+				('iya', 'ईय'),
+				('tav', 'तव्य'),
+				('para', 'कर्तरि'),
+				('atma', 'कर्तरि'),
+				('pass', 'कर्मणि'),
+				('pa', 'कृदन्त'),
 				]
-	output = datafetched
-	for member in database:
-		output = re.sub(member[0], member[1], output) # Changed attributes strings with their Sanskrit Devanagari counterparts.
-	root1 = output.split("-")[0]
-	root2 = root1.split("#")[0] # Gerard sometimes adds # to denote number of verb in his dictionary. Removed the number for our usage.
-	output = re.sub(root1, root2, output)
-	output = transcoder.transcoder_processString(output, "slp1", "deva") # This code creates some issue in windows setting. Therefore not converting to Devanagari right now. Will do that later.
-	return output
+	#print "analysis of word started", printtimestamp()
+	datafetched = analyser(word)
+	#print "analysis of word ended", printtimestamp()
+	if datafetched == "????":
+		return "????"
+	else:
+		individual = datafetched.split("|")
+		outputlist = []
+		for ind in individual:
+			split = ind.split('-')
+			root = split[0].decode('utf-8')
+			#root = root.split('#')[0]
+			root = transcoder.transcoder_processString(root, "slp1", "deva")
+			output = "-".join(split[1:])
+			output = output.decode('utf-8')
+			for member in database:
+				output = re.sub(member[0], member[1].decode('utf-8'), output) # Changed attributes strings with their Sanskrit Devanagari counterparts.
+			output = transcoder.transcoder_processString(output, "slp1", "deva") # This code creates some issue in windows setting. Therefore not converting to Devanagari right now. Will do that later.
+			outputlist.append(root + "-" + output)
+		#print "Postprocessing of word ended", printtimestamp()
+		return "|".join(outputlist)
 
+
+#print devanagaridisplay("aMSakatas")
+
+def convertfromfile(inputfile,outputfile):
+	f = codecs.open(inputfile, 'r', 'utf-8')
+	data = f.readlines()
+	f.close()
+	g = codecs.open(outputfile, 'w', 'utf-8')
+	for datum1 in data:
+		datum1 = datum1.strip()
+		datum1 = transcoder.transcoder_processString(datum1, "deva", "slp1")
+		dat = re.split('(\W+)',datum1)
+		for i in xrange(len(dat)):
+			datum = dat[i].strip()
+			if i % 2 == 0 and i != len(dat)-1:
+				#print "analysis of word started", printtimestamp()
+				x = devanagaridisplay(datum)
+				#print "analysis of word ended", printtimestamp()
+				g.write(transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")")
+				print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")",
+				#print "wrote to the file", printtimestamp()
+			else:
+				g.write(transcoder.transcoder_processString(dat[i], "slp1", "deva"))
+				print transcoder.transcoder_processString(dat[i], "slp1", "deva"),
+		g.write('\n')
+		print
+	g.close()
+	
+convertfromfile('sanskritinput.txt','hindioutput.txt')
