@@ -14,6 +14,7 @@ import datetime
 def printtimestamp():
 	return datetime.datetime.now()
 
+# Parsing the XMLs.
 print "Parsing of XMLs started at", printtimestamp()
 roots = etree.parse('SL_roots.xml')
 nouns = etree.parse('SL_nouns.xml')
@@ -24,8 +25,53 @@ pronouns = etree.parse('SL_pronouns.xml')
 filelist = [roots, nouns, adverbs, final, parts, pronouns]
 #filelist = [parts]
 print "Parsing of XMLs completed at", printtimestamp()
-print "Starting analysis at", printtimestamp()
 #print "Will notify after every 100 words analysed."
+
+# first members of a compound
+def firstmemberlist():
+	global final
+	iic = final.xpath('/forms/f/iic')
+	iip = final.xpath('/forms/f/iip')
+	iiv = final.xpath('/forms/f/iiv')
+	firstmemberlist = [member.getparent().get('form') for member in iic]
+	firstmemberlist += [member.getparent().get('form') for member in iip]
+	firstmemberlist += [member.getparent().get('form') for member in iiv]
+	return firstmemberlist
+firstmembers = firstmemberlist()
+
+# second member
+def secondmemberlist():
+	global nouns, parts
+	n = nouns.xpath('/forms/f')
+	p = parts.xpath('/forms/f')
+	secondmemberlist = [member.get('form') for member in n]
+	secondmemberlist += [member.get('form') for member in p]
+	return secondmemberlist
+secondmembers = secondmemberlist()
+#print "Starting analysis at", printtimestamp()
+def compoundupasargatrial(inputform):
+	global firstmembers, secondmembers
+	#print inputform
+	sandhidata = [('+A','a+a'),('+A','a+A'),('+A','A+a'),('+A','A+A'),('+I','i+i'),('+I','i+I'),('+I','I+i'),('+I','I+I'),('+U','u+u'),('+U','u+U'),('+U','U+u'),('+U','U+U'),('+F','f+f'),('+e','e+a'),('+e','a+i'),('+e','A+i'),('+e','a+I'),('+e','A+I'),
+				  ('+o','o+a'),('+o','a+u'),('+o','A+u'),('+o','a+I'),('+o','A+U'),('+E','a+e'),('+E','A+e'),('+E','a+E'),('+E','A+E'),('+O','a+o'),('+O','A+o'),('+O','a+O'),('+O','A+O'),('+y','i+'),('+y','I+'),('+v','u+'),('+v','U+'),]
+	outputlist = [inputform]
+	for i in range(1,len(inputform)):
+		outputlist.append(inputform[:i]+"+"+inputform[i:])
+	outputlist1 = []
+	for inputword in outputlist:
+		for (mem1, mem2) in sandhidata:
+			if mem1 in inputword:
+				outputlist1.append(inputword.replace(mem1, mem2))
+	outputlist = outputlist + outputlist1
+	outputlist = list(set(outputlist))
+	out1 = []
+	for words in outputlist:
+		wordsplit = words.split('+')
+		if wordsplit[0] in firstmembers and wordsplit[1] in secondmembers:
+			out1.append("+".join(wordsplit))
+	print out1
+compoundupasargatrial('nIlotpalasya')
+
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
 	#print "importing filelist for findwordform started at", printtimestamp()
@@ -247,6 +293,9 @@ def devanagaridisplay(word):
 				('atma', 'कर्तरि'),
 				('pass', 'कर्मणि'),
 				('pa', 'कृदन्त'),
+				('iic', 'समासपूर्वपदनामपद'),
+				('iip', 'समासपूर्वपदकृदन्त'),
+				('iiv', 'समासपूर्वपदधातु'),
 				]
 	#print "analysis of word started", printtimestamp()
 	datafetched = analyser(word)
@@ -284,7 +333,7 @@ def convertfromfile(inputfile,outputfile):
 		dat = re.split('(\W+)',datum1)
 		for i in xrange(len(dat)):
 			datum = dat[i].strip()
-			if i % 2 == 0 and i != len(dat)-1:
+			if i % 2 == 0 and i != len(dat):
 				#print "analysis of word started", printtimestamp()
 				x = devanagaridisplay(datum)
 				#print "analysis of word ended", printtimestamp()
@@ -298,4 +347,4 @@ def convertfromfile(inputfile,outputfile):
 		print
 	g.close()
 	
-convertfromfile('sanskritinput.txt','hindioutput.txt')
+#convertfromfile('sanskritinput.txt','hindioutput.txt')
