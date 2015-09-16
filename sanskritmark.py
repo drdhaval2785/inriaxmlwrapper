@@ -1,6 +1,5 @@
 # This Python file uses the following encoding: utf-8
 # Author - Dr. Dhaval patel - drdhaval2785@gmail.com - www.sanskritworld.in
-# Written for Sanskrit Hindi translation tool for Nripendra Pathak's Ph.D.
 # XML database of verbs taken from sanskrit.inria.fr site of Gerard Huet. For sample, please see SL_roots.xml
 # Date - 21 August 2015
 # Version - 1.0.0
@@ -14,7 +13,7 @@ import datetime
 def printtimestamp():
 	return datetime.datetime.now()
 
-# Parsing the XMLs.
+# Parsing the XMLs. We will use them as globals when need be.
 print "Parsing of XMLs started at", printtimestamp()
 roots = etree.parse('SL_roots.xml')
 nouns = etree.parse('SL_nouns.xml')
@@ -27,50 +26,130 @@ filelist = [roots, nouns, adverbs, final, parts, pronouns]
 print "Parsing of XMLs completed at", printtimestamp()
 #print "Will notify after every 100 words analysed."
 
-# first members of a compound
+# first members of a compound. Gerard stores them as iic, iip and iiv tags, in final.xml file.
 def firstmemberlist():
+	# Calling global variable final
 	global final
+	# defining xpaths
 	iic = final.xpath('/forms/f/iic')
 	iip = final.xpath('/forms/f/iip')
 	iiv = final.xpath('/forms/f/iiv')
+	# fetched and added data
 	firstmemberlist = [member.getparent().get('form') for member in iic]
 	firstmemberlist += [member.getparent().get('form') for member in iip]
 	firstmemberlist += [member.getparent().get('form') for member in iiv]
 	return firstmemberlist
+# Storing firstmembers for future use as global variable.
 firstmembers = firstmemberlist()
 
-# second member
+# Secondmember of a compound. Gerard has stored them in noun and participles files.
 def secondmemberlist():
+	# Calling global variables nouns and parts
 	global nouns, parts
 	n = nouns.xpath('/forms/f')
 	p = parts.xpath('/forms/f')
+	# Storing data
 	secondmemberlist = [member.get('form') for member in n]
 	secondmemberlist += [member.get('form') for member in p]
 	return secondmemberlist
+# Storing secondmembers for future use as global variable.
 secondmembers = secondmemberlist()
+
 #print "Starting analysis at", printtimestamp()
-def compoundupasargatrial(inputform):
+
+# makestring converts a list of list into all possible strings e.g. [['p','b'],['A'],['g','u']] would give pAg,bAg,pAu,bAu as output.
+# Default joiner is a blank. You can specify conj='+' etc to join the strings with a '+'.
+def makestring(listoflist, conj=''):
+	# by default the least number of members of the output list would be equal to the first member e.g. len(['p','b']) = 2. 
+	outputstore = listoflist[0]
+	# For rest of the members, we run a for loop.
+	for i in range(1,len(listoflist)):
+		out2 = []
+		for member in outputstore:
+			# All strings of the listoflist[i] are joined to the member (the strings generated so far). e.g. pA,bA would become pAg,bAg,pAu,gAu in our example
+			for j in listoflist[i]:
+				out2.append(member + conj + j)
+			outputstore = out2
+	out3 = []
+	for love in outputstore:
+		if love.split('+')[-1] in secondmembers:
+			out3.append(love)
+	return out3
+
+# This is used to split words which are not split by sandhi rules e.g. 'harihara'.
+# Be careful. This is a recursive function.
+def samasasplitter(string):
+	# Importing the global variable firstmembers to check whether our all partitions of the word are in it or not.
 	global firstmembers, secondmembers
-	#print inputform
-	sandhidata = [('+A','a+a'),('+A','a+A'),('+A','A+a'),('+A','A+A'),('+I','i+i'),('+I','i+I'),('+I','I+i'),('+I','I+I'),('+U','u+u'),('+U','u+U'),('+U','U+u'),('+U','U+U'),('+F','f+f'),('+e','e+a'),('+e','a+i'),('+e','A+i'),('+e','a+I'),('+e','A+I'),
-				  ('+o','o+a'),('+o','a+u'),('+o','A+u'),('+o','a+I'),('+o','A+U'),('+E','a+e'),('+E','A+e'),('+E','a+E'),('+E','A+E'),('+O','a+o'),('+O','A+o'),('+O','a+O'),('+O','A+O'),('+y','i+'),('+y','I+'),('+v','u+'),('+v','U+'),]
-	outputlist = [inputform]
-	for i in range(1,len(inputform)):
-		outputlist.append(inputform[:i]+"+"+inputform[i:])
-	outputlist1 = []
-	for inputword in outputlist:
-		for (mem1, mem2) in sandhidata:
-			if mem1 in inputword:
-				outputlist1.append(inputword.replace(mem1, mem2))
-	outputlist = outputlist + outputlist1
-	outputlist = list(set(outputlist))
-	out1 = []
-	for words in outputlist:
-		wordsplit = words.split('+')
-		if wordsplit[0] in firstmembers and wordsplit[1] in secondmembers:
-			out1.append("+".join(wordsplit))
-	print out1
-compoundupasargatrial('nIlotpalasya')
+	output = []
+	for i in range(len(string)):
+		if i == len(string) - 1:
+			output.append(string)
+		# Created two parts from string.
+		first_part = string[0:i+1]
+		second_part = string[i+1:]
+		# If the first part is a valid Sanskrit word i.e. it belongs to firstmembers list, the code is executed further.
+		if first_part in firstmembers:
+			for j in samasasplitter(second_part): # This is the recursive part
+				output.append('+'.join([first_part, j]))
+	# initialising the list for function output
+	returnlist = []
+	for mem in output:
+		# if some member of the list output is split by a '+' and all the words generated as such are in either the firstmembers or secondmember i.e. the partitions are valid Sanskrit words.
+		if set(mem.split('+')) < set(firstmembers + secondmembers):
+			# Add to returnlist
+			returnlist.append(mem)
+	# graceful error handling
+	if len(returnlist) > 0:
+		return returnlist # Presuming there is only one non-sandhi split, which is wrong. To be corrected later
+	else:
+		return 'error'
+print samasasplitter('viSvamohanahariBramarakzaRakuRqa')
+
+# sss stands for sandhisamasasplitting.
+def sss(inputword):
+	# Because Gerard stores them with terminal s or m.
+	if len(inputword) > 1:
+		if inputword[-1] == 'H':
+			inputword = inputword[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
+		elif inputword[-1] == 'M':
+			inputword = inputword[:-1]+"m"
+
+	global firstmembers, secondmembers
+	# A rough sandhi data for vowel sandhi. It can be extended to consonant sandhis and visarga sandhis, rutva sandhis etc by the same logic.
+	sandhidata = [('A','a+a'),('A','a+A'),('A','A+a'),('A','A+A'),('I','i+i'),('I','i+I'),('I','I+i'),('I','I+I'),('U','u+u'),('U','u+U'),('U','U+u'),('U','U+U'),('F','f+f'),('e','e+a'),('e','a+i'),('e','A+i'),('e','a+I'),('e','A+I'),
+				  ('o','o+a'),('o','a+u'),('o','A+u'),('o','a+U'),('o','A+U'),('E','a+e'),('E','A+e'),('E','a+E'),('E','A+E'),('O','a+o'),('O','A+o'),('O','a+O'),('O','A+O'),('y','i+'),('y','I+'),('v','u+'),('v','U+'),]
+	out2 = []
+	for letter in inputword:
+		out3 = [letter]
+		for (x,y) in sandhidata:
+			out3.append(letter.replace(x, y))
+		out3 = list(set(out3))
+		out2.append(out3)
+	sandhisplitdata = makestring(out2)
+	out4 = []
+	for san in sandhisplitdata:
+		x = san.split('+')
+		p = []
+		for mem in x:
+			if samasasplitter(mem) is not 'error':
+				p.append(samasasplitter(mem))
+			else:
+				p.append([mem])
+		out4.append(makestring(p,'+'))
+	result = []
+	for members in out4:
+		wordsplit = members[0].split('+')
+		if wordsplit[-1] in secondmembers:
+			if set(wordsplit[:-1]) < set(firstmembers):
+				result.append(members[0])
+	if len(result) > 0:
+		return '|'.join(result)
+	else:
+		return 'error'
+			
+
+#print sss('viSveSvaraharihareSvareRa'), printtimestamp()
 
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
@@ -213,89 +292,89 @@ def devanagaridisplay(word):
 		elif word[-1] == 'M':
 			word = word[:-1]+"m"
 	# If there are tags which are not enumerated here, they can be added as and when there is a need.
-	database = [('v-cj-prim', 'प्राथमिक'),
-				('v-cj-ca', 'णिजन्त'),
-				('v-cj-int', 'यङन्त'),
-				('v-cj-des', 'सन्नन्त'),
-				('sys-prs-md-pr', 'लट्'),
-				('sys-prs-md-ip', 'लोट्'),
-				('sys-prs-md-op', 'विधिलिङ्'),
-				('sys-prs-md-im', 'लङ्'),
-				('sys-pas-md-pr', 'लट्-कर्मणि'),
-				('sys-pas-md-ip', 'लोट्-कर्मणि'),
-				('sys-pas-md-op', 'विधिलिङ्-कर्मणि'),
-				('sys-pas-md-im', 'लङ्-कर्मणि'),
-				('sys-tp-fut', 'लृट्'),
-				('sys-tp-prf', 'लिट्'),
-				('sys-tp-aor', 'लुङ्'),
-				('sys-tp-inj', 'आगमाभावयुक्तलुङ्'),
-				('sys-tp-cnd', 'लृङ्'),
-				('sys-tp-ben', 'आशीर्लिङ्'),
-				('sys-pef', 'लुट्'),
-				('np-sg', 'एकवचन'),
-				('np-du', 'द्विवचन'),
-				('np-pl', 'बहुवचन'),
-				('fst', 'उत्तमपुरुष'),
-				('snd', 'मध्यमपुरुष'),
-				('trd', 'प्रथमपुरुष'),
-				('na-nom', 'प्रथमा'),
-				('na-voc', 'संबोधन'),
-				('na-acc', 'द्वितीया'),
-				('na-ins', 'तृतीया'),
-				('na-dat', 'चतुर्थी'),
-				('na-abl', 'पञ्चमी'),
-				('na-gen', 'षष्ठी'),
-				('na-loc', 'सप्तमी'),
-				('sg', 'एकवचन'),
-				('du', 'द्विवचन'),
-				('pl', 'बहुवचन'),
-				('mas', 'पुंल्लिङ्ग'),
-				('fem', 'स्त्रीलिङ्ग'),
-				('neu', 'नपुंसकलिङ्ग'),
-				('dei', 'सङ्ख्या'),
-				('uf', 'अव्यय'),
-				('ind', 'क्रियाविशेषण'),
-				('interj', 'उद्गार'),
-				('parti', 'निपात'),
-				('prep', 'चादि'),
-				('conj', 'संयोजक'),
-				('tasil', 'तसिल्'),
-				('vu-cj-prim', 'अव्ययधातुरूप-प्राथमिक'),
-				('vu-cj-ca', 'अव्ययधातुरूप-णिजन्त'),
-				('vu-cj-int', 'अव्ययधातुरूप-यङन्त'),
-				('vu-cj-des', 'अव्ययधातुरूप-सन्नन्त'),
-				('iv-inf','तुमुन्'),
-				('iv-abs','क्त्वा'),
-				('iv-per','per'),
-				('ab-cj-prim', 'क्त्वा-प्राथमिक'),
-				('ab-cj-ca', 'क्त्वा-णिजन्त'),
-				('ab-cj-int', 'क्त्वा-यङन्त'),
-				('ab-cj-des', 'क्त्वा-सन्नन्त'),
-				('kr-cj-prim-no', 'प्राथमिक'),
-				('kr-cj-ca-no', 'णिजन्त'),
-				('kr-cj-int-no', 'यङन्त'),
-				('kr-cj-des-no', 'सन्नन्त'),
-				('kr-vb-no', ''),
-				('ppp', 'कर्मणिभूतकृदन्त'),
-				('ppa', 'कर्तरिभूतकृदन्त'),
-				('pprp', 'कर्मणिवर्तमानकृदन्त'),
-				('ppr-para', 'कर्तरिवर्तमानकृदन्त-परस्मै'),
-				('ppr-atma', 'कर्तरिवर्तमानकृदन्त-आत्मने'),
-				('ppft-para', 'पूर्णभूतकृदन्त-परस्मै'),
-				('ppft-atma', 'पूर्णभूतकृदन्त-आत्मने'),
-				('pfutp', 'कर्मणिभविष्यत्कृदन्त'),
-				('pfut-para', 'कर्तरिभविष्यत्कृदन्त-परस्मै'),
-				('pfut-atma', 'कर्तरिभविष्यत्कृदन्त-आत्मने'),
-				('gya', 'य'),
-				('iya', 'ईय'),
-				('tav', 'तव्य'),
-				('para', 'कर्तरि'),
-				('atma', 'कर्तरि'),
-				('pass', 'कर्मणि'),
-				('pa', 'कृदन्त'),
-				('iic', 'समासपूर्वपदनामपद'),
-				('iip', 'समासपूर्वपदकृदन्त'),
-				('iiv', 'समासपूर्वपदधातु'),
+	database = [('v-cj-prim', 'प्राथमिकः'),
+    ('v-cj-ca', 'णिजन्तः'),
+    ('v-cj-int', 'यङन्तः'),
+    ('v-cj-des', 'सन्नन्तः'),
+    ('sys-prs-md-pr', 'लट्'),
+    ('sys-prs-md-ip', 'लोट्'),
+    ('sys-prs-md-op', 'विधिलिङ्'),
+    ('sys-prs-md-im', 'लङ्'),
+    ('sys-pas-md-pr', 'लट्-कर्मणि'),
+    ('sys-pas-md-ip', 'लोट्-कर्मणि'),
+    ('sys-pas-md-op', 'विधिलिङ्-कर्मणि'),
+    ('sys-pas-md-im', 'लङ्-कर्मणि'),
+    ('sys-tp-fut', 'लृट्'),
+    ('sys-tp-prf', 'लिट्'),
+    ('sys-tp-aor', 'लुङ्'),
+    ('sys-tp-inj', 'आगमाभावयुक्तलुङ्'),
+    ('sys-tp-cnd', 'लृङ्'),
+    ('sys-tp-ben', 'आशीर्लिङ्'),
+    ('sys-pef', 'लुट्'),
+    ('np-sg', 'एकवचनम्'),
+    ('np-du', 'द्विवचनम्'),
+    ('np-pl', 'बहुवचनम्'),
+    ('fst', 'उत्तमपुरुषः'),
+    ('snd', 'मध्यमपुरुषः'),
+    ('trd', 'प्रथमपुरुषः'),
+    ('na-nom', 'प्रथमाविभक्तिः'),
+    ('na-voc', 'संबोधनाविभक्तिः'),
+    ('na-acc', 'द्वितीयाविभक्तिः'),
+    ('na-ins', 'तृतीयाविभक्तिः'),
+    ('na-dat', 'चतुर्थीविभक्तिः'),
+    ('na-abl', 'पञ्चमीविभक्तिः'),
+    ('na-gen', 'षष्ठीविभक्तिः'),
+    ('na-loc', 'सप्तमीविभक्तिः'),
+    ('sg', 'एकवचनम्'),
+    ('du', 'द्विवचनम्'),
+    ('pl', 'बहुवचनम्'),
+    ('mas', 'पुंल्लिङ्गम्'),
+    ('fem', 'स्त्रीलिङ्गम्'),
+    ('neu', 'नपुंसकलिङ्गम्'),
+    ('dei', 'सङ्ख्या'),
+    ('uf', 'अव्ययम्'),
+    ('ind', 'क्रियाविशेषणम्'),
+    ('interj', 'उद्गारः'),
+    ('parti', 'निपातम्'),
+    ('prep', 'चादिः'),
+    ('conj', 'संयोजकः'),
+    ('tasil', 'तसिल्'),
+    ('vu-cj-prim', 'अव्ययधातुरूप-प्राथमिकः'),
+    ('vu-cj-ca', 'अव्ययधातुरूप-णिजन्तः'),
+    ('vu-cj-int', 'अव्ययधातुरूप-यङन्तः'),
+    ('vu-cj-des', 'अव्ययधातुरूप-सन्नन्तः'),
+    ('iv-inf','तुमुन्'),
+    ('iv-abs','क्त्वा'),
+    ('iv-per','per'),
+    ('ab-cj-prim', 'क्त्वा-प्राथमिकः'),
+    ('ab-cj-ca', 'क्त्वा-णिजन्तः'),
+    ('ab-cj-int', 'क्त्वा-यङन्तः'),
+    ('ab-cj-des', 'क्त्वा-सन्नन्तः'),
+    ('kr-cj-prim-no', 'प्राथमिकः'),
+    ('kr-cj-ca-no', 'णिजन्तः'),
+    ('kr-cj-int-no', 'यङन्तः'),
+    ('kr-cj-des-no', 'सन्नन्तः'),
+    ('kr-vb-no', ''),
+    ('ppp', 'कर्मणिभूतकृदन्तः'),
+    ('ppa', 'कर्तरिभूतकृदन्तः'),
+    ('pprp', 'कर्मणिवर्तमानकृदन्तः'),
+    ('ppr-para', 'कर्तरिवर्तमानकृदन्त-परस्मैपदी'),
+    ('ppr-atma', 'कर्तरिवर्तमानकृदन्त-आत्मनेपदी'),
+    ('ppft-para', 'पूर्णभूतकृदन्त-परस्मैपदी'),
+    ('ppft-atma', 'पूर्णभूतकृदन्त-आत्मनेपदी'),
+    ('pfutp', 'कर्मणिभविष्यत्कृदन्तः'),
+    ('pfut-para', 'कर्तरिभविष्यत्कृदन्त-परस्मैपदी'),
+    ('pfut-atma', 'कर्तरिभविष्यत्कृदन्त-आत्मनेपदी'),
+    ('gya', 'य'),
+    ('iya', 'ईय'),
+    ('tav', 'तव्य'),
+    ('para', 'कर्तरि'),
+    ('atma', 'कर्तरि'),
+    ('pass', 'कर्मणि'),
+    ('pa', 'कृदन्तः'),
+	('iic', 'समासपूर्वपदनामपदम्'),
+	('iip', 'समासपूर्वपदकृदन्तः'),
+	('iiv', 'समासपूर्वपदधातुः'),
 				]
 	#print "analysis of word started", printtimestamp()
 	datafetched = analyser(word)
