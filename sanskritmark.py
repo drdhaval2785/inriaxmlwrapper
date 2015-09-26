@@ -76,36 +76,6 @@ def makestring(listoflist, conj=''):
 		out3.append(love)
 	return out3
 
-# This is used to split words which are not split by sandhi rules e.g. 'harihara'.
-# Be careful. This is a recursive function.
-def samasasplitter(string):
-	# Importing the global variable firstmembers to check whether our all partitions of the word are in it or not.
-	global firstmembers, secondmembers
-	output = []
-	for i in range(len(string)):
-		if i == len(string) - 1:
-			output.append(string)
-		# Created two parts from string.
-		first_part = string[0:i+1]
-		second_part = string[i+1:]
-		# If the first part is a valid Sanskrit word i.e. it belongs to firstmembers list, the code is executed further.
-		if first_part in firstmembers:
-			for j in samasasplitter(second_part): # This is the recursive part
-				output.append('+'.join([first_part, j]))
-	# initialising the list for function output
-	returnlist = []
-	for mem in output:
-		# if some member of the list output is split by a '+' and all the words generated as such are in either the firstmembers or secondmember i.e. the partitions are valid Sanskrit words.
-		if set(mem.split('+')) < set(firstmembers + secondmembers):
-			# Add to returnlist
-			returnlist.append(mem)
-	# graceful error handling
-	if len(returnlist) > 0:
-		return returnlist
-	else:
-		return 'error'
-#print samasasplitter('lalAwapawwakaBramarakzaRapAvake'), printtimestamp()
-
 # http://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
 def find_words(instring, prefix = '', words = firstmembers + secondmembers):
     if not instring:
@@ -137,6 +107,7 @@ def find_words(instring, prefix = '', words = firstmembers + secondmembers):
     else:
         return 'error'
 
+# An assistive function to sss to remove impossible splits i.e. when any split is less than expectedlength or when the terminal split is <= 4.
 def leng(x, expectedlength):
 	output = []
 	y = x.split('+')
@@ -146,9 +117,12 @@ def leng(x, expectedlength):
 	else:
 		if y[-1] <= 4:
 			return False
+		elif re.search(r'[aAiIuUfFeEoO][aAiIuUfFeEoO]', x):
+			return False
 		else:
 			return True
 
+# An assistant function to sss to remove splits of find_words which don't parse the full word i.e. which didn't get the correct parse.
 def find_word_exact(inputword):
 	findwordoutput = find_words(inputword)
 	if ''.join(findwordoutput) == inputword:
@@ -169,7 +143,6 @@ def sss(inputword):
 	sandhidata = [('A','a+a'),('A','a+A'),('A','A+a'),('A','A+A'),('I','i+i'),('I','i+I'),('I','I+i'),('I','I+I'),('U','u+u'),('U','u+U'),('U','U+u'),('U','U+U'),('F','f+f'),('e','e+a'),('e','a+i'),('e','A+i'),('e','a+I'),('e','A+I'),
 				  ('o','o+a'),('o','a+u'),('o','A+u'),('o','a+U'),('o','A+U'),('E','a+e'),('E','A+e'),('E','a+E'),('E','A+E'),('O','a+o'),('O','A+o'),('O','a+O'),('O','A+O'),('y','i+'),('y','I+'),('v','u+'),('v','U+'),]
 	out2 = []
-	print printtimestamp()
 	for i in xrange(len(inputword)):
 		out3 = [inputword[i]]
 		for (x,y) in sandhidata:
@@ -177,12 +150,10 @@ def sss(inputword):
 		out3 = list(set(out3))
 		out2.append(out3)
 	sandhisplitdata = makestring(out2)
-	print printtimestamp()
 	out4 = []
-	print len(sandhisplitdata)
 	for san in sandhisplitdata:
 		if leng(san,2):
-			san = san.translate(None, '+')
+			san = re.sub('[+]', '', san)
 			q = find_word_exact(san)
 			if q is not 'error':
 				out4.append(q)
@@ -191,7 +162,8 @@ def sss(inputword):
 	else:
 		return 'error'
 			
-print sss('mahADarendraputryAH'), printtimestamp()
+#print sss('Davalotsavayos'), printtimestamp()
+
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
 	#print "importing filelist for findwordform started at", printtimestamp()
@@ -208,7 +180,7 @@ def findwordform(inputform):
 			outputlist.append(etree.tostring(member).strip()) # Created a string out of element tree. strip() removes unnecessary white spaces around the string.
 	#print "findwordform completed at", printtimestamp()
 	if len(outputlist) == 0:
-		return "????"
+		return '????'
 	else:
 		return "|".join(outputlist)
 
@@ -279,7 +251,23 @@ def iter(wordxml, strength="Full"):
 
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
 def analyser(word, strength="Full"):
-	return iter(findwordform(word), strength)
+	if not findwordform(word) == '????':
+		return iter(findwordform(word), strength)
+	else:
+		samasa = sss(word)
+		output = []
+		if samasa is not 'error':
+			indsamasa = samasa.split('|')
+			for indsam in indsamasa:
+				indsamcomponents = indsam.split('+')
+				prefix = indsamcomponents[:-1]
+				lastword = indsamcomponents[-1]
+				lastwordanalysed = iter(findwordform(lastword), strength)
+				for lastwordan in lastwordanalysed.split('|'):
+					output.append('+'.join(prefix) + '+' + lastwordan)
+			return '|'.join(output)
+		else:
+			return '????'
 
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 # The approach 
@@ -458,13 +446,13 @@ def convertfromfile(inputfile,outputfile):
 				x = devanagaridisplay(datum)
 				#print "analysis of word ended", printtimestamp()
 				g.write(transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")")
-				print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")",
+				print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")"
 				#print "wrote to the file", printtimestamp()
 			else:
 				g.write(transcoder.transcoder_processString(dat[i], "slp1", "deva"))
-				print transcoder.transcoder_processString(dat[i], "slp1", "deva"),
+				print transcoder.transcoder_processString(dat[i], "slp1", "deva")
 		g.write('\n')
 		print
 	g.close()
 	
-#convertfromfile('sanskritinput.txt','hindioutput.txt')
+convertfromfile('sanskritinput.txt','hindioutput.txt')
