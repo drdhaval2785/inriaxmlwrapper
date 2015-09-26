@@ -9,6 +9,7 @@ import re
 import transcoder
 import codecs
 import datetime
+import editdistance
 
 def printtimestamp():
 	return datetime.datetime.now()
@@ -72,8 +73,7 @@ def makestring(listoflist, conj=''):
 			outputstore = out2
 	out3 = []
 	for love in outputstore:
-		if love.split('+')[-1] in secondmembers:
-			out3.append(love)
+		out3.append(love)
 	return out3
 
 # This is used to split words which are not split by sandhi rules e.g. 'harihara'.
@@ -101,12 +101,62 @@ def samasasplitter(string):
 			returnlist.append(mem)
 	# graceful error handling
 	if len(returnlist) > 0:
-		return returnlist # Presuming there is only one non-sandhi split, which is wrong. To be corrected later
+		return returnlist
 	else:
 		return 'error'
-print samasasplitter('viSvamohanahariBramarakzaRakuRqa')
+#print samasasplitter('lalAwapawwakaBramarakzaRapAvake'), printtimestamp()
 
-# sss stands for sandhisamasasplitting.
+# http://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
+def find_words(instring, prefix = '', words = firstmembers + secondmembers):
+    if not instring:
+        return []
+    if words is None:
+        words = set()
+        with open('/usr/share/dict/words') as f:
+            for line in f:
+                words.add(line.strip())
+    if (not prefix) and (instring in words):
+        return [instring]
+    prefix, suffix = prefix + instring[0], instring[1:]
+    solutions = []
+    # Case 1: prefix in solution
+    if prefix in words:
+        try:
+            solutions.append([prefix] + find_words(suffix, '', words))
+        except ValueError:
+            pass
+    # Case 2: prefix not in solution
+    try:
+        solutions.append(find_words(suffix, prefix, words))
+    except ValueError:
+        pass
+    if solutions:
+        return sorted(solutions,
+                      key = lambda solution: [len(word) for word in solution],
+                      reverse = True)[0]
+    else:
+        return 'error'
+
+def leng(x, expectedlength):
+	output = []
+	y = x.split('+')
+	for mem in y:
+		if len(mem) <= expectedlength:
+			return False
+	else:
+		if y[-1] <= 4:
+			return False
+		else:
+			return True
+
+def find_word_exact(inputword):
+	findwordoutput = find_words(inputword)
+	if ''.join(findwordoutput) == inputword:
+		return '+'.join(findwordoutput)
+	else:
+		return 'error'
+
+# sss stands for sandhisamasasplitting. It works well, but too slow. We need some restrictions while making sandhi splits.
 def sss(inputword):
 	# Because Gerard stores them with terminal s or m.
 	if len(inputword) > 1:
@@ -114,43 +164,34 @@ def sss(inputword):
 			inputword = inputword[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
 		elif inputword[-1] == 'M':
 			inputword = inputword[:-1]+"m"
-
 	global firstmembers, secondmembers
 	# A rough sandhi data for vowel sandhi. It can be extended to consonant sandhis and visarga sandhis, rutva sandhis etc by the same logic.
 	sandhidata = [('A','a+a'),('A','a+A'),('A','A+a'),('A','A+A'),('I','i+i'),('I','i+I'),('I','I+i'),('I','I+I'),('U','u+u'),('U','u+U'),('U','U+u'),('U','U+U'),('F','f+f'),('e','e+a'),('e','a+i'),('e','A+i'),('e','a+I'),('e','A+I'),
 				  ('o','o+a'),('o','a+u'),('o','A+u'),('o','a+U'),('o','A+U'),('E','a+e'),('E','A+e'),('E','a+E'),('E','A+E'),('O','a+o'),('O','A+o'),('O','a+O'),('O','A+O'),('y','i+'),('y','I+'),('v','u+'),('v','U+'),]
 	out2 = []
-	for letter in inputword:
-		out3 = [letter]
+	print printtimestamp()
+	for i in xrange(len(inputword)):
+		out3 = [inputword[i]]
 		for (x,y) in sandhidata:
-			out3.append(letter.replace(x, y))
+			out3.append(inputword[i].replace(x, y))
 		out3 = list(set(out3))
 		out2.append(out3)
 	sandhisplitdata = makestring(out2)
+	print printtimestamp()
 	out4 = []
+	print len(sandhisplitdata)
 	for san in sandhisplitdata:
-		x = san.split('+')
-		p = []
-		for mem in x:
-			if samasasplitter(mem) is not 'error':
-				p.append(samasasplitter(mem))
-			else:
-				p.append([mem])
-		out4.append(makestring(p,'+'))
-	result = []
-	for members in out4:
-		wordsplit = members[0].split('+')
-		if wordsplit[-1] in secondmembers:
-			if set(wordsplit[:-1]) < set(firstmembers):
-				result.append(members[0])
-	if len(result) > 0:
-		return '|'.join(result)
+		if leng(san,2):
+			san = san.translate(None, '+')
+			q = find_word_exact(san)
+			if q is not 'error':
+				out4.append(q)
+	if len(out4) > 0 and type(out4) == list:
+		return '|'.join(out4)
 	else:
 		return 'error'
 			
-
-#print sss('viSveSvaraharihareSvareRa'), printtimestamp()
-
+print sss('mahADarendraputryAH'), printtimestamp()
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
 	#print "importing filelist for findwordform started at", printtimestamp()
