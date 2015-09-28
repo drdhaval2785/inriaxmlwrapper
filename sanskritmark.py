@@ -22,7 +22,8 @@ adverbs = etree.parse('SL_adverbs.xml')
 final = etree.parse('SL_final.xml')
 parts = etree.parse('SL_parts.xml')
 pronouns = etree.parse('SL_pronouns.xml')
-filelist = [roots, nouns, adverbs, final, parts, pronouns]
+upasargas = etree.parse('SL_upasargas.xml')
+filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 #filelist = [parts]
 print "Parsing of XMLs completed at", printtimestamp()
 #print "Will notify after every 100 words analysed."
@@ -56,6 +57,15 @@ def secondmemberlist():
 # Storing secondmembers for future use as global variable.
 secondmembers = secondmemberlist()
 
+def allmemberlist():
+	global filelist
+	allmemberlist = []
+	for file in filelist:
+		allwords = file.xpath('/forms/f')
+		allmemberlist += [member.get('form') for member in allwords]
+	return allmemberlist
+allmembers = allmemberlist()
+
 #print "Starting analysis at", printtimestamp()
 
 # makestring converts a list of list into all possible strings e.g. [['p','b'],['A'],['g','u']] would give pAg,bAg,pAu,bAu as output.
@@ -76,15 +86,13 @@ def makestring(listoflist, conj=''):
 		out3.append(love)
 	return out3
 
+# This function splits a long word into its constituent words (If you want to change the dictionary, change the parameter 'words'. By default, they are fetched data from Gerard's XMLs above)
 # http://stackoverflow.com/questions/8870261/how-to-split-text-without-spaces-into-list-of-words
-def find_words(instring, prefix = '', words = firstmembers + secondmembers):
+
+#def find_words(instring, prefix = '', words = firstmembers + secondmembers):
+def find_words(instring, prefix = '', words = allmembers):
     if not instring:
         return []
-    if words is None:
-        words = set()
-        with open('/usr/share/dict/words') as f:
-            for line in f:
-                words.add(line.strip())
     if (not prefix) and (instring in words):
         return [instring]
     prefix, suffix = prefix + instring[0], instring[1:]
@@ -140,20 +148,23 @@ def sss(inputword):
 			inputword = inputword[:-1]+"m"
 	global firstmembers, secondmembers
 	# A rough sandhi data for vowel sandhi. It can be extended to consonant sandhis and visarga sandhis, rutva sandhis etc by the same logic.
-	sandhidata = [('A','a+a'),('A','a+A'),('A','A+a'),('A','A+A'),('I','i+i'),('I','i+I'),('I','I+i'),('I','I+I'),('U','u+u'),('U','u+U'),('U','U+u'),('U','U+U'),('F','f+f'),('e','e+a'),('e','a+i'),('e','A+i'),('e','a+I'),('e','A+I'),
+	voweldata = [('A','a+a'),('A','a+A'),('A','A+a'),('A','A+A'),('I','i+i'),('I','i+I'),('I','I+i'),('I','I+I'),('U','u+u'),('U','u+U'),('U','U+u'),('U','U+U'),('F','f+f'),('e','e+a'),('e','a+i'),('e','A+i'),('e','a+I'),('e','A+I'),
 				  ('o','o+a'),('o','a+u'),('o','A+u'),('o','a+U'),('o','A+U'),('E','a+e'),('E','A+e'),('E','a+E'),('E','A+E'),('O','a+o'),('O','A+o'),('O','a+O'),('O','A+O'),('y','i+'),('y','I+'),('v','u+'),('v','U+'),]
+	consonantdata = [(r'([aAiIuUfFxXeEoO])([M])([S])([c])','\1n\4')]
 	out2 = []
 	for i in xrange(len(inputword)):
 		out3 = [inputword[i]]
-		for (x,y) in sandhidata:
+		for (x,y) in voweldata:
 			out3.append(inputword[i].replace(x, y))
 		out3 = list(set(out3))
 		out2.append(out3)
 	sandhisplitdata = makestring(out2)
 	out4 = []
 	for san in sandhisplitdata:
-		if leng(san,2):
+		if leng(san,2) or san.split('+')[-1] in ['ca']:
 			san = re.sub('[+]', '', san)
+			for (a,b) in consonantdata:
+				san = re.sub(a, b, san)
 			q = find_word_exact(san)
 			if q is not 'error':
 				out4.append(q)
@@ -162,7 +173,7 @@ def sss(inputword):
 	else:
 		return 'error'
 			
-#print sss('Davalotsavayos'), printtimestamp()
+#print sss('sundarAMSca'), printtimestamp()
 
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("BavAmi","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
@@ -249,8 +260,12 @@ def iter(wordxml, strength="Full"):
 		#print "postprocessing of iter ended at", printtimestamp()
 		return "|".join(wordwithtags) # If there are more than one possible verb characteristics for a given form, they are shown separated by a '|'
 
+def mapiter(input):
+	return iter(findwordform(input))
+
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
 def analyser(word, strength="Full"):
+	global secondmembers
 	if not findwordform(word) == '????':
 		return iter(findwordform(word), strength)
 	else:
@@ -260,12 +275,14 @@ def analyser(word, strength="Full"):
 			indsamasa = samasa.split('|')
 			for indsam in indsamasa:
 				indsamcomponents = indsam.split('+')
-				prefix = indsamcomponents[:-1]
+				analy = map(mapiter, indsamcomponents)
+				"""prefix = indsamcomponents[:-1]
 				lastword = indsamcomponents[-1]
 				lastwordanalysed = iter(findwordform(lastword), strength)
 				for lastwordan in lastwordanalysed.split('|'):
-					output.append('+'.join(prefix) + '+' + lastwordan)
-			return '|'.join(output)
+					output.append('+'.join(prefix) + '+' + lastwordan)"""
+				output.append('$'.join(analy))
+			return '%'.join(output)
 		else:
 			return '????'
 
@@ -404,6 +421,7 @@ def devanagaridisplay(word):
 	('iic', 'समासपूर्वपदनामपदम्'),
 	('iip', 'समासपूर्वपदकृदन्तः'),
 	('iiv', 'समासपूर्वपदधातुः'),
+	('upsrg', 'उपसर्गः')
 				]
 	#print "analysis of word started", printtimestamp()
 	datafetched = analyser(word)
@@ -441,7 +459,7 @@ def convertfromfile(inputfile,outputfile):
 		dat = re.split('(\W+)',datum1)
 		for i in xrange(len(dat)):
 			datum = dat[i].strip()
-			if i % 2 == 0 and i != len(dat):
+			if i % 2 == 0 and i != len(dat)-1:
 				#print "analysis of word started", printtimestamp()
 				x = devanagaridisplay(datum)
 				#print "analysis of word ended", printtimestamp()
