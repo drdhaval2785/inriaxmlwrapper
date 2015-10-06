@@ -116,7 +116,7 @@ def find_words(instring, prefix = '', words = allmembers):
         return 'error'
 
 # An assistive function to sss to remove impossible splits i.e. when any split is less than expectedlength or when the terminal split is <= 4.
-def leng(x, expectedlength):
+def leng(x, expectedlength, wordlist=allmembers):
 	output = []
 	y = x.split('+')
 	for mem in y:
@@ -162,10 +162,13 @@ def sss(inputword):
 	out4 = []
 	for san in sandhisplitdata:
 		if leng(san,2) or san.split('+')[-1] in ['ca']:
+			#print printtimestamp()
 			san = re.sub('[+]', '', san)
 			for (a,b) in consonantdata:
 				san = re.sub(a, b, san)
+			#print printtimestamp()
 			q = find_word_exact(san)
+			#print printtimestamp()
 			if q is not 'error':
 				out4.append(q)
 	if len(out4) > 0 and type(out4) == list:
@@ -459,7 +462,7 @@ def convertfromfile(inputfile,outputfile):
 		dat = re.split('(\W+)',datum1)
 		for i in xrange(len(dat)):
 			datum = dat[i].strip()
-			if i % 2 == 0 and i != len(dat)-1:
+			if i % 2 == 0 and i != len(dat):
 				#print "analysis of word started", printtimestamp()
 				x = devanagaridisplay(datum)
 				#print "analysis of word ended", printtimestamp()
