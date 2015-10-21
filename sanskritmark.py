@@ -28,6 +28,30 @@ filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 print "Parsing of XMLs completed at", printtimestamp()
 #print "Will notify after every 100 words analysed."
 
+def verbformlist():
+	global roots
+	g = codecs.open('verbformlist.txt', 'w', 'utf-8')
+	roo = roots.xpath('/forms/f')
+	verbformlist = [member.get('form') for member in roo]
+	g.write(','.join(verbformlist))
+	g.close()
+#verbformlist()
+def verblist():
+	global roots
+	g = codecs.open('verblist.txt', 'w', 'utf-8')
+	roo = roots.xpath('/forms/f/s')
+	verbformlist = [member.get('stem') for member in roo]
+	verbformlist = list(set(verbformlist))
+	outputlist = []
+	for member in verbformlist:
+		member = re.sub(r'[0-9]',r'',member)
+		member = re.sub('#','',member)
+		outputlist.append(member)
+	outputlist = list(set(outputlist))
+	print len(outputlist)
+	g.write(','.join(outputlist))
+	g.close()
+#verblist();
 # first members of a compound. Gerard stores them as iic, iip and iiv tags, in final.xml file.
 def firstmemberlist():
 	# Calling global variable final
