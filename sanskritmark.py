@@ -391,7 +391,7 @@ def devanagaridisplay(word):
     ('snd', 'मध्यमपुरुषः'),
     ('trd', 'प्रथमपुरुषः'),
     ('na-nom', 'प्रथमाविभक्तिः'),
-    ('na-voc', 'संबोधनाविभक्तिः'),
+    ('na-voc', 'संबोधनविभक्तिः'),
     ('na-acc', 'द्वितीयाविभक्तिः'),
     ('na-ins', 'तृतीयाविभक्तिः'),
     ('na-dat', 'चतुर्थीविभक्तिः'),
@@ -500,4 +500,4 @@ def convertfromfile(inputfile,outputfile):
 		print
 	g.close()
 	
-convertfromfile('sanskritinput.txt','hindioutput.txt')
+convertfromfile('sanskritinput.txt','analysedoutput.txt')
