@@ -22,11 +22,10 @@ adverbs = etree.parse('SL_adverbs.xml')
 final = etree.parse('SL_final.xml')
 parts = etree.parse('SL_parts.xml')
 pronouns = etree.parse('SL_pronouns.xml')
-#upasargas = etree.parse('SL_upasargas.xml')
+upasargas = etree.parse('SL_upasargas.xml')
 # This filelist can include all or some files. By default it takes into account all XMLs of Gerard.
 # If you need some specific database like roots, nouns etc you can keep them and remove the rest. It would speed up the process.
-#filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
-filelist = [roots, nouns, adverbs, final, parts, pronouns]
+filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 #filelist = [parts]
 print "Parsing of XMLs completed at", printtimestamp()
 #print "Will notify after every 100 words analysed."
