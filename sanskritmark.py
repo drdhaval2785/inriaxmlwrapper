@@ -370,7 +370,7 @@ def generator(analysedword, translit="slp1"):
 
 # devangaridisplay and translator functions are created for Nripendra Pathak, so that he may provide necessary data for extending the code.
 # function devanagaridisplay will show the attribute list from XML files in a format which a traditional Sanskrit scholar may understand easily.
-def devanagaridisplay(word,split=True):
+def devanagaridisplay(word,split=True,remove_hash=False):
 	if len(word) > 1:
 		if word[-1] == 'H':
 			word = word[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
@@ -473,7 +473,8 @@ def devanagaridisplay(word,split=True):
 		for ind in individual:
 			split = ind.split('-') # Separate the tags.
 			root = split[0].decode('utf-8') # Base root.
-			#root = root.split('#')[0] # In case you want to remove '#1' etc kept by Gerard, uncomment it.
+                        if remove_hash:
+			        root = root.split('#')[0] # In case you want to remove '#1' etc kept by Gerard, uncomment it.
 			root = transcoder.transcoder_processString(root, "slp1", "deva") # Conversion to Devanagari.
 			output = "-".join(split[1:]) # All Devanagari attributs joined with '-'.
 			output = output.decode('utf-8') # UTF-8
