@@ -302,11 +302,11 @@ def mapiter(input):
 	return iter(findwordform(input))
 
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
-def analyser(word, strength="Full"):
+def analyser(word, strength="Full",split=True):
 	global secondmembers
 	if not findwordform(word) == '????': # If the output is not an error
 		return iter(findwordform(word), strength) # Return the output
-	else:
+	elif split:
 		samasa = sss(word) # Try to split the word for samAsa / sandhi.
 		output = []
 		if samasa is not 'error': # If the word can be split as a samAsa / sandhi,
@@ -323,7 +323,9 @@ def analyser(word, strength="Full"):
 			return '%'.join(output) # Return the output joined by '%'.
 		else:
 			return '????' # Return error.
-
+        else:
+                return '????'
+        
 # Don't know ther reason, but findrootword and generator are taking too long. They used to work well earlier.
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 def findrootword(checkedrootword):
@@ -369,7 +371,7 @@ def generator(analysedword, translit="slp1"):
 
 # devangaridisplay and translator functions are created for Nripendra Pathak, so that he may provide necessary data for extending the code.
 # function devanagaridisplay will show the attribute list from XML files in a format which a traditional Sanskrit scholar may understand easily.
-def devanagaridisplay(word):
+def devanagaridisplay(word,split=True):
 	if len(word) > 1:
 		if word[-1] == 'H':
 			word = word[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
@@ -462,7 +464,7 @@ def devanagaridisplay(word):
 	('upsrg', 'उपसर्गः')
 				]
 	#print "analysis of word started", printtimestamp()
-	datafetched = analyser(word) # Analyse the input word.
+	datafetched = analyser(word,split=split) # Analyse the input word.
 	#print "analysis of word ended", printtimestamp()
 	if datafetched == "????": # If error
 		return "????" # Return error
