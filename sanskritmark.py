@@ -511,4 +511,5 @@ def convertfromfile(inputfile,outputfile):
 		print # Newline character printed on terminal.
 	g.close() # Closed outputfile.
 	
-convertfromfile('sanskritinput.txt','analysedoutput.txt')
+if __name__ == "__main__":
+        convertfromfile('sanskritinput.txt','analysedoutput.txt')
