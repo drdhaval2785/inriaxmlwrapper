@@ -11,11 +11,11 @@ import codecs
 import datetime
 
 # Function to return timestamp
-def printtimestamp():
+def timestamp():
 	return datetime.datetime.now()
 
 # Parsing the XMLs. We will use them as globals when need be.
-print "Parsing of XMLs started at", printtimestamp()
+print "Parsing of XMLs started at", timestamp()
 roots = etree.parse('SL_roots.xml') # parses the XML file.
 nouns = etree.parse('SL_nouns.xml')
 adverbs = etree.parse('SL_adverbs.xml')
@@ -28,7 +28,7 @@ pronouns = etree.parse('SL_pronouns.xml')
 #filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 filelist = [roots, nouns, adverbs, final, parts, pronouns]
 #filelist = [parts]
-print "Parsing of XMLs completed at", printtimestamp()
+print "Parsing of XMLs completed at", timestamp()
 #print "Will notify after every 100 words analysed."
 
 # function to create the verbformlist from XML file SL_roots.xml. Output stored as verbformlist.txt.
@@ -103,7 +103,7 @@ def allmemberlist():
 # Storing allmembers for future use as global variable.
 allmembers = allmemberlist() 
 
-#print "Starting analysis at", printtimestamp()
+#print "Starting analysis at", timestamp()
 
 # Function makestring converts a list of list into all possible strings e.g. [['p','b'],['A'],['g','u']] would give pAg,bAg,pAu,bAu as output.
 # Default joiner is a blank. You can specify conj='+' etc to join the strings with a '+'.
@@ -199,13 +199,13 @@ def sss(inputword):
 	out4 = []
 	for san in sandhisplitdata:
 		if leng(san,2) or san.split('+')[-1] in ['ca']:
-			#print printtimestamp()
+			#print timestamp()
 			san = re.sub('[+]', '', san) # Removed '+' sign.
 			for (a,b) in consonantdata: 
 				san = re.sub(a, b, san) # Replaced consonantdata with their corresponding changes.
-			#print printtimestamp()
+			#print timestamp()
 			q = find_word_exact(san) # Return the splits which are proper splits of the inputword, filtering out unnecessary splits.
-			#print printtimestamp()
+			#print timestamp()
 			if q is not 'error':
 				out4.append(q) # store in out4 list.
 	if len(out4) > 0 and type(out4) == list:
@@ -215,19 +215,19 @@ def sss(inputword):
 
 # function findwordform searches in the XML file for line which matches the wordform we are interested in. e.g. findwordform("Bavati","SL_roots.xml") would find all lines of XML file which have word form "Bavati".
 def findwordform(inputform):
-	#print "importing filelist for findwordform started at", printtimestamp()
+	#print "importing filelist for findwordform started at", timestamp()
 	global filelist # Fetched global variable filelist.
-	#print "importing filelist for findwordform ended at", printtimestamp()
+	#print "importing filelist for findwordform ended at", timestamp()
 	outputlist = [] # A list to store output.
 	for file in filelist:
 		tree = file # The etree to manipulate.
 		xpathname = '/forms/f[@form="' + inputform + '"]' # Defined the xpath to search
-		#print "xpath parsing for findwordform started at", printtimestamp() # After speed analysis, this function is the most time expensive. It takes around 0.10 sec per word form.
+		#print "xpath parsing for findwordform started at", timestamp() # After speed analysis, this function is the most time expensive. It takes around 0.10 sec per word form.
 		r = tree.xpath(xpathname) # Created a list 'r' whose members are lines of XML file which correspond to the word form 'inputform'
-		#print "xpath parsing for findwordform ended at", printtimestamp()
+		#print "xpath parsing for findwordform ended at", timestamp()
 		for member in r:
 			outputlist.append(etree.tostring(member).strip()) # Created a string out of element tree. strip() removes unnecessary white spaces around the string.
-	#print "findwordform completed at", printtimestamp()
+	#print "findwordform completed at", timestamp()
 	if len(outputlist) == 0:
 		return '????' # Error message.
 	else:
@@ -258,9 +258,9 @@ def iter(wordxml, strength="Full"):
 		individualentries = wordxml.split('|')
 		for individualentry in individualentries:
 			tree = StringIO(individualentry) # Created XML from the worddata
-			#print "parsing of iter started at", printtimestamp()
+			#print "parsing of iter started at", timestamp()
 			context = etree.parse(tree) # Parsed the element tree.
-			#print "parsing of iter ended at", printtimestamp()
+			#print "parsing of iter ended at", timestamp()
 			root = context.getroot() # got the root of element tree e.g. 'f'
 			# The next two steps require explanation. In Gerard's XML files, All possible attributes are given as children of 'f'. The last child is always 's' which stores the stem. All other children are the various possible word attributes. Given as 'na' or 'v' etc. Gio
 			children = root.getchildren()[:-1] # attributes
@@ -295,7 +295,7 @@ def iter(wordxml, strength="Full"):
 				outputlist = attributes # SLP1
 			for member in outputlist:
 				wordwithtags.append(baseword + "-" + "-".join(member) ) # Created a list wordwithtags where the first member is baseword and the rest of the members are attributes separated by '-'
-		#print "postprocessing of iter ended at", printtimestamp()
+		#print "postprocessing of iter ended at", timestamp()
 		return "|".join(wordwithtags) # If there are more than one possible verb characteristics for a given form, they are shown separated by a '|'
 
 def mapiter(input):
@@ -304,9 +304,10 @@ def mapiter(input):
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
 def analyser(word, strength="Full"):
 	global secondmembers
-	if not findwordform(word) == '????': # If the output is not an error
-		return iter(findwordform(word), strength) # Return the output
-	else:
+	foundform = findwordform(word)
+	if not foundform == '????': # If the output is not an error
+		return iter(foundform, strength) # Return the output
+	elif not strength == "low":
 		samasa = sss(word) # Try to split the word for samAsa / sandhi.
 		output = []
 		if samasa is not 'error': # If the word can be split as a samAsa / sandhi,
@@ -314,16 +315,17 @@ def analyser(word, strength="Full"):
 			for indsam in indsamasa:
 				indsamcomponents = indsam.split('+') # Separate members of the compound / sandhi
 				analy = map(mapiter, indsamcomponents) # Apply mapiter function to all components of indsamcomponents.
-				"""prefix = indsamcomponents[:-1]
+				prefix = indsamcomponents[:-1]
 				lastword = indsamcomponents[-1]
 				lastwordanalysed = iter(findwordform(lastword), strength)
 				for lastwordan in lastwordanalysed.split('|'):
-					output.append('+'.join(prefix) + '+' + lastwordan)"""
+					output.append('+'.join(prefix) + '+' + lastwordan)
 				output.append('$'.join(analy)) # Appended the solution to output list.
 			return '%'.join(output) # Return the output joined by '%'.
 		else:
 			return '????' # Return error.
-
+	else:
+		return word
 # Don't know ther reason, but findrootword and generator are taking too long. They used to work well earlier.
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 def findrootword(checkedrootword):
@@ -461,9 +463,9 @@ def devanagaridisplay(word):
 	('iiv', 'समासपूर्वपदधातुः'),
 	('upsrg', 'उपसर्गः')
 				]
-	#print "analysis of word started", printtimestamp()
-	datafetched = analyser(word) # Analyse the input word.
-	#print "analysis of word ended", printtimestamp()
+	#print "analysis of word started", timestamp()
+	datafetched = analyser(word,strength='low') # Analyse the input word.
+	#print "analysis of word ended", timestamp()
 	if datafetched == "????": # If error
 		return "????" # Return error
 	else:
@@ -480,7 +482,7 @@ def devanagaridisplay(word):
 				output = re.sub(member[0], member[1].decode('utf-8'), output) # Changed attributes strings with their Sanskrit Devanagari counterparts.
 			output = transcoder.transcoder_processString(output, "slp1", "deva") # This code creates some issue in windows setting. Therefore not converting to Devanagari right now. Will do that later.
 			outputlist.append(root + "-" + output)
-		#print "Postprocessing of word ended", printtimestamp()
+		#print "Postprocessing of word ended", timestamp()
 		return "|".join(outputlist) # Return output
 #print devanagaridisplay("aMSakatas")
 
@@ -498,19 +500,18 @@ def convertfromfile(inputfile,outputfile):
 		for i in xrange(len(dat)):
 			datum = dat[i].strip() # Clean whitespaces.
 			if i % 2 == 0 and i != len(dat): # Even members of datum are the words and odd members are word boundaries. Therefore, processing only even members. 
-				#print "analysis of word started", printtimestamp()
+				#print "analysis of word started", timestamp()
 				x = devanagaridisplay(datum) # Analysed the even members.
-				#print "analysis of word ended", printtimestamp()
+				#print "analysis of word ended", timestamp()
 				g.write(transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")") # Wrote to the outputfile.
-				print datum
+				print datum, timestamp()
 				#print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")" # printed to the screen for the user.
-				#print "wrote to the file", printtimestamp()
+				#print "wrote to the file", timestamp()
 			else:
 				g.write(transcoder.transcoder_processString(dat[i], "slp1", "deva")) # For odd members, converted the word boundaries to their Devanagari counterparts.
-				print transcoder.transcoder_processString(dat[i], "slp1", "deva") # For odd members, converted the word boundaries to their Devanagari counterparts.
 		g.write('\n') # Newline character added
 		print # Newline character printed on terminal.
 	g.close() # Closed outputfile.
 
-if __name__=="__main__":	
+if __name__=="__main__":
 	convertfromfile('sanskritinput.txt','analysedoutput.txt')
