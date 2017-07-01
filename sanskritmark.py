@@ -9,7 +9,6 @@ import re
 import transcoder
 import codecs
 import datetime
-import editdistance
 
 # Function to return timestamp
 def printtimestamp():
@@ -23,10 +22,11 @@ adverbs = etree.parse('SL_adverbs.xml')
 final = etree.parse('SL_final.xml')
 parts = etree.parse('SL_parts.xml')
 pronouns = etree.parse('SL_pronouns.xml')
-upasargas = etree.parse('SL_upasargas.xml')
+#upasargas = etree.parse('SL_upasargas.xml')
 # This filelist can include all or some files. By default it takes into account all XMLs of Gerard.
 # If you need some specific database like roots, nouns etc you can keep them and remove the rest. It would speed up the process.
-filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
+#filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
+filelist = [roots, nouns, adverbs, final, parts, pronouns]
 #filelist = [parts]
 print "Parsing of XMLs completed at", printtimestamp()
 #print "Will notify after every 100 words analysed."
@@ -504,7 +504,8 @@ def convertfromfile(inputfile,outputfile):
 				x = devanagaridisplay(datum) # Analysed the even members.
 				#print "analysis of word ended", printtimestamp()
 				g.write(transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")") # Wrote to the outputfile.
-				print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")" # printed to the screen for the user.
+				print datum
+				#print transcoder.transcoder_processString(datum, "slp1", "deva")+"("+x+")" # printed to the screen for the user.
 				#print "wrote to the file", printtimestamp()
 			else:
 				g.write(transcoder.transcoder_processString(dat[i], "slp1", "deva")) # For odd members, converted the word boundaries to their Devanagari counterparts.
@@ -512,6 +513,8 @@ def convertfromfile(inputfile,outputfile):
 		g.write('\n') # Newline character added
 		print # Newline character printed on terminal.
 	g.close() # Closed outputfile.
-	
-if __name__ == "__main__":
-        convertfromfile('sanskritinput.txt','analysedoutput.txt')
+
+
+if __name__=="__main__":	
+	convertfromfile('sanskritinput.txt','analysedoutput.txt')
+
