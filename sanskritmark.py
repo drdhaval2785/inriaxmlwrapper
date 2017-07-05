@@ -10,25 +10,42 @@ import transcoder
 import codecs
 import datetime
 
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
 # Function to return timestamp
 def timestamp():
 	return datetime.datetime.now()
 
 # Parsing the XMLs. We will use them as globals when need be.
-print "Parsing of XMLs started at", timestamp()
-roots = etree.parse('SL_roots.xml') # parses the XML file.
-nouns = etree.parse('SL_nouns.xml')
-adverbs = etree.parse('SL_adverbs.xml')
-final = etree.parse('SL_final.xml')
-parts = etree.parse('SL_parts.xml')
-pronouns = etree.parse('SL_pronouns.xml')
-#upasargas = etree.parse('SL_upasargas.xml')
+print "Parsing of XMLs started at", printtimestamp()
+roots = etree.parse(dir_path+'/SL_roots.xml') # parses the XML file.
+nouns = etree.parse(dir_path+'/SL_nouns.xml')
+adverbs = etree.parse(dir_path+'/SL_adverbs.xml')
+final = etree.parse(dir_path+'/SL_final.xml')
+parts = etree.parse(dir_path+'/SL_parts.xml')
+pronouns = etree.parse(dir_path+'/SL_pronouns.xml')
+upasargas = etree.parse(dir_path+'/SL_upasargas.xml')
 # This filelist can include all or some files. By default it takes into account all XMLs of Gerard.
 # If you need some specific database like roots, nouns etc you can keep them and remove the rest. It would speed up the process.
-#filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
-filelist = [roots, nouns, adverbs, final, parts, pronouns]
+filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 #filelist = [parts]
-print "Parsing of XMLs completed at", timestamp()
+
+# Precreate set for search
+formlist = []
+for l in filelist:
+        formlist.extend([member.get('form') for member in l.xpath('/forms/f')])
+formset=set(formlist)
+print "{} forms cached for quick search".format(len(formset))
+
+print "Parsing of XMLs completed at", printtimestamp()
+
+# Function for form check - for splitting etc.
+def quicksearch(form):
+        global formset
+        return form in formset
+
 #print "Will notify after every 100 words analysed."
 
 # function to create the verbformlist from XML file SL_roots.xml. Output stored as verbformlist.txt.
@@ -302,12 +319,18 @@ def mapiter(input):
 	return iter(findwordform(input))
 
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
-def analyser(word, strength="Full"):
+def analyser(word, strength="Full",split=True):
 	global secondmembers
+<<<<<<< HEAD
 	foundform = findwordform(word)
 	if not foundform == '????': # If the output is not an error
 		return iter(foundform, strength) # Return the output
 	elif not strength == "low":
+=======
+	if not findwordform(word) == '????': # If the output is not an error
+		return iter(findwordform(word), strength) # Return the output
+	elif split:
+>>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 		samasa = sss(word) # Try to split the word for samAsa / sandhi.
 		output = []
 		if samasa is not 'error': # If the word can be split as a samAsa / sandhi,
@@ -324,8 +347,14 @@ def analyser(word, strength="Full"):
 			return '%'.join(output) # Return the output joined by '%'.
 		else:
 			return '????' # Return error.
+<<<<<<< HEAD
 	else:
 		return word
+=======
+        else:
+                return '????'
+        
+>>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 # Don't know ther reason, but findrootword and generator are taking too long. They used to work well earlier.
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 def findrootword(checkedrootword):
@@ -371,7 +400,7 @@ def generator(analysedword, translit="slp1"):
 
 # devangaridisplay and translator functions are created for Nripendra Pathak, so that he may provide necessary data for extending the code.
 # function devanagaridisplay will show the attribute list from XML files in a format which a traditional Sanskrit scholar may understand easily.
-def devanagaridisplay(word):
+def devanagaridisplay(word,split=True,remove_hash=False):
 	if len(word) > 1:
 		if word[-1] == 'H':
 			word = word[:-1]+"s" # A word ending with a visarga are converted to sakArAnta, because this is how Gerard has stored his data.
@@ -463,9 +492,15 @@ def devanagaridisplay(word):
 	('iiv', 'समासपूर्वपदधातुः'),
 	('upsrg', 'उपसर्गः')
 				]
+<<<<<<< HEAD
 	#print "analysis of word started", timestamp()
 	datafetched = analyser(word,strength='low') # Analyse the input word.
 	#print "analysis of word ended", timestamp()
+=======
+	#print "analysis of word started", printtimestamp()
+	datafetched = analyser(word,split=split) # Analyse the input word.
+	#print "analysis of word ended", printtimestamp()
+>>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 	if datafetched == "????": # If error
 		return "????" # Return error
 	else:
@@ -474,7 +509,8 @@ def devanagaridisplay(word):
 		for ind in individual:
 			split = ind.split('-') # Separate the tags.
 			root = split[0].decode('utf-8') # Base root.
-			#root = root.split('#')[0] # In case you want to remove '#1' etc kept by Gerard, uncomment it.
+                        if remove_hash:
+			        root = root.split('#')[0] # In case you want to remove '#1' etc kept by Gerard, uncomment it.
 			root = transcoder.transcoder_processString(root, "slp1", "deva") # Conversion to Devanagari.
 			output = "-".join(split[1:]) # All Devanagari attributs joined with '-'.
 			output = output.decode('utf-8') # UTF-8
@@ -513,5 +549,11 @@ def convertfromfile(inputfile,outputfile):
 		print # Newline character printed on terminal.
 	g.close() # Closed outputfile.
 
+<<<<<<< HEAD
 if __name__=="__main__":
+=======
+
+if __name__=="__main__":	
+>>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 	convertfromfile('sanskritinput.txt','analysedoutput.txt')
+
