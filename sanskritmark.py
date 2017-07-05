@@ -340,8 +340,6 @@ def analyser(word, strength="Full",split=True):
 			return '%'.join(output) # Return the output joined by '%'.
 		else:
 			return '????' # Return error.
-        else:
-                return '????'
         
 # Don't know ther reason, but findrootword and generator are taking too long. They used to work well earlier.
 # Functions findrootword and generator are for generating the word form from given attributes and root.
