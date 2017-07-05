@@ -10,24 +10,42 @@ import transcoder
 import codecs
 import datetime
 
+import os 
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+
 # Function to return timestamp
 def printtimestamp():
 	return datetime.datetime.now()
 
 # Parsing the XMLs. We will use them as globals when need be.
 print "Parsing of XMLs started at", printtimestamp()
-roots = etree.parse('SL_roots.xml') # parses the XML file.
-nouns = etree.parse('SL_nouns.xml')
-adverbs = etree.parse('SL_adverbs.xml')
-final = etree.parse('SL_final.xml')
-parts = etree.parse('SL_parts.xml')
-pronouns = etree.parse('SL_pronouns.xml')
-upasargas = etree.parse('SL_upasargas.xml')
+roots = etree.parse(dir_path+'/SL_roots.xml') # parses the XML file.
+nouns = etree.parse(dir_path+'/SL_nouns.xml')
+adverbs = etree.parse(dir_path+'/SL_adverbs.xml')
+final = etree.parse(dir_path+'/SL_final.xml')
+parts = etree.parse(dir_path+'/SL_parts.xml')
+pronouns = etree.parse(dir_path+'/SL_pronouns.xml')
+upasargas = etree.parse(dir_path+'/SL_upasargas.xml')
 # This filelist can include all or some files. By default it takes into account all XMLs of Gerard.
 # If you need some specific database like roots, nouns etc you can keep them and remove the rest. It would speed up the process.
 filelist = [roots, nouns, adverbs, final, parts, pronouns, upasargas]
 #filelist = [parts]
+
+# Precreate set for search
+formlist = []
+for l in filelist:
+        formlist.extend([member.get('form') for member in l.xpath('/forms/f')])
+formset=set(formlist)
+print "{} forms cached for quick search".format(len(formset))
+
 print "Parsing of XMLs completed at", printtimestamp()
+
+# Function for form check - for splitting etc.
+def quicksearch(form):
+        global formset
+        return form in formset
+
 #print "Will notify after every 100 words analysed."
 
 # function to create the verbformlist from XML file SL_roots.xml. Output stored as verbformlist.txt.
