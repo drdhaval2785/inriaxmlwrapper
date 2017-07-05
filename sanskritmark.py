@@ -321,16 +321,9 @@ def mapiter(input):
 # function analyser analyses all the XML files and gets matching details from all XMLs e.g. 'Bavati' may be a verb form, but it can also be a noun form of 'Bavat' locative singular. Therefore it is needed to traverse all XML files.
 def analyser(word, strength="Full",split=True):
 	global secondmembers
-<<<<<<< HEAD
-	foundform = findwordform(word)
-	if not foundform == '????': # If the output is not an error
-		return iter(foundform, strength) # Return the output
-	elif not strength == "low":
-=======
 	if not findwordform(word) == '????': # If the output is not an error
 		return iter(findwordform(word), strength) # Return the output
 	elif split:
->>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 		samasa = sss(word) # Try to split the word for samAsa / sandhi.
 		output = []
 		if samasa is not 'error': # If the word can be split as a samAsa / sandhi,
@@ -347,14 +340,9 @@ def analyser(word, strength="Full",split=True):
 			return '%'.join(output) # Return the output joined by '%'.
 		else:
 			return '????' # Return error.
-<<<<<<< HEAD
-	else:
-		return word
-=======
         else:
                 return '????'
         
->>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 # Don't know ther reason, but findrootword and generator are taking too long. They used to work well earlier.
 # Functions findrootword and generator are for generating the word form from given attributes and root.
 def findrootword(checkedrootword):
@@ -492,15 +480,9 @@ def devanagaridisplay(word,split=True,remove_hash=False):
 	('iiv', 'समासपूर्वपदधातुः'),
 	('upsrg', 'उपसर्गः')
 				]
-<<<<<<< HEAD
-	#print "analysis of word started", timestamp()
-	datafetched = analyser(word,strength='low') # Analyse the input word.
-	#print "analysis of word ended", timestamp()
-=======
 	#print "analysis of word started", printtimestamp()
 	datafetched = analyser(word,split=split) # Analyse the input word.
 	#print "analysis of word ended", printtimestamp()
->>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 	if datafetched == "????": # If error
 		return "????" # Return error
 	else:
@@ -549,11 +531,6 @@ def convertfromfile(inputfile,outputfile):
 		print # Newline character printed on terminal.
 	g.close() # Closed outputfile.
 
-<<<<<<< HEAD
-if __name__=="__main__":
-=======
-
 if __name__=="__main__":	
->>>>>>> 0b3866dc11b80b0f2ef590484ab2121f51dae6f8
 	convertfromfile('sanskritinput.txt','analysedoutput.txt')
 
