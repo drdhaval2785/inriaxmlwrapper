@@ -19,7 +19,7 @@ def timestamp():
 	return datetime.datetime.now()
 
 # Parsing the XMLs. We will use them as globals when need be.
-print "Parsing of XMLs started at", timestamp()()
+print "Parsing of XMLs started at", timestamp()
 roots = etree.parse(dir_path+'/SL_roots.xml') # parses the XML file.
 nouns = etree.parse(dir_path+'/SL_nouns.xml')
 adverbs = etree.parse(dir_path+'/SL_adverbs.xml')
@@ -39,7 +39,7 @@ for l in filelist:
 formset=set(formlist)
 print "{} forms cached for quick search".format(len(formset))
 
-print "Parsing of XMLs completed at", timestamp()()
+print "Parsing of XMLs completed at", timestamp()
 
 # Function for form check - for splitting etc.
 def quicksearch(form):
@@ -478,9 +478,9 @@ def devanagaridisplay(word,split=True,remove_hash=False):
 	('iiv', 'समासपूर्वपदधातुः'),
 	('upsrg', 'उपसर्गः')
 				]
-	#print "analysis of word started", timestamp()()
+	#print "analysis of word started", timestamp()
 	datafetched = analyser(word,split=split) # Analyse the input word.
-	#print "analysis of word ended", timestamp()()
+	#print "analysis of word ended", timestamp()
 	if datafetched == "????": # If error
 		return "????" # Return error
 	else:
