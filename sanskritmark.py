@@ -515,7 +515,7 @@ def convertfromfile(inputfile,outputfile):
 		dat = re.split('(\W+)',datum1) # Created a word list by exploding the sentence at word boundaries.
 		for i in xrange(len(dat)):
 			datum = dat[i].strip() # Clean whitespaces.
-			if i % 2 == 0 and i != len(dat): # Even members of datum are the words and odd members are word boundaries. Therefore, processing only even members. 
+			if i % 2 == 0 and i != len(dat)-1: # Even members of datum are the words and odd members are word boundaries. Therefore, processing only even members. 
 				#print "analysis of word started", timestamp()
 				x = devanagaridisplay(datum) # Analysed the even members.
 				#print "analysis of word ended", timestamp()
